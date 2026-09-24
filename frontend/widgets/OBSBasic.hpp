@@ -450,6 +450,7 @@ private:
 	QList<QPointer<QDockWidget>> extraCustomDocks;
 
 	QPointer<OBSDock> controlsDock;
+	QPointer<OBSDock> poldenDock;
 	QPointer<OBSDock> mixerDock;
 
 public:

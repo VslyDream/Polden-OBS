@@ -57,7 +57,9 @@
 #include <qt-wrappers.hpp>
 
 #include <QActionGroup>
+#include <QPushButton>
 #include <QThread>
+#include <QVBoxLayout>
 #include <QWidgetAction>
 
 #include <mutex>
@@ -297,6 +299,23 @@ OBSBasic::OBSBasic(QWidget *parent) : OBSMainWindow(parent), undo_s(ui), ui(new 
 	/* Parenting is done there so controls will be deleted alongside controlsDock */
 	controlsDock->setWidget(controls);
 
+	/* Placeholder controls for planned post-recording workflows. */
+	auto *poldenPanel = new QWidget(this);
+	auto *poldenLayout = new QVBoxLayout(poldenPanel);
+	auto *convertButton = new QPushButton(tr("Convert to MP4"), poldenPanel);
+	auto *premiereButton = new QPushButton(tr("Send to Premiere"), poldenPanel);
+	convertButton->setEnabled(false);
+	premiereButton->setEnabled(false);
+	convertButton->setToolTip(tr("Planned feature"));
+	premiereButton->setToolTip(tr("Planned feature"));
+	poldenLayout->addWidget(convertButton);
+	poldenLayout->addWidget(premiereButton);
+	poldenLayout->addStretch();
+	poldenDock = new OBSDock(this);
+	poldenDock->setObjectName(QStringLiteral("poldenDock"));
+	poldenDock->setWindowTitle(QStringLiteral("Polden"));
+	poldenDock->setWidget(poldenPanel);
+
 	connect(controls, &OBSBasicControls::StreamButtonClicked, this, &OBSBasic::StreamActionTriggered);
 
 	connect(controls, &OBSBasicControls::StartStreamMenuActionClicked, this, &OBSBasic::StartStreaming);
@@ -362,6 +381,7 @@ OBSBasic::OBSBasic(QWidget *parent) : OBSMainWindow(parent), undo_s(ui), ui(new 
 	int sideDockWidth = std::min(width() * 30 / 100, 320);
 	resizeDocks({ui->scenesDock, ui->sourcesDock}, {sideDockWidth, sideDockWidth}, Qt::Horizontal);
 	addDockWidget(Qt::BottomDockWidgetArea, controlsDock);
+	splitDockWidget(controlsDock, poldenDock, Qt::Horizontal);
 
 	startingDockLayout = saveState();
 
@@ -534,6 +554,7 @@ OBSBasic::OBSBasic(QWidget *parent) : OBSMainWindow(parent), undo_s(ui), ui(new 
 	SETUP_DOCK(ui->mixerDock);
 	SETUP_DOCK(ui->transitionsDock);
 	SETUP_DOCK(controlsDock);
+	SETUP_DOCK(poldenDock);
 	SETUP_DOCK(statsDock);
 #undef SETUP_DOCK
 
@@ -2127,7 +2148,7 @@ void OBSBasic::UpdateTitleBar()
 	const char *profile = config_get_string(App()->GetUserConfig(), "Basic", "Profile");
 	const char *sceneCollection = config_get_string(App()->GetUserConfig(), "Basic", "SceneCollection");
 
-	name << "OBS ";
+	name << "Polden OBS ";
 	if (previewProgramMode) {
 		name << "Studio ";
 	}

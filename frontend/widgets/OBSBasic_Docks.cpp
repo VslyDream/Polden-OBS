@@ -87,13 +87,14 @@ void OBSBasic::on_resetDocks_triggered(bool force)
 	ui->mixerDock->setVisible(true);
 	ui->transitionsDock->setVisible(true);
 	controlsDock->setVisible(true);
+	poldenDock->setVisible(true);
 	statsDock->setVisible(false);
 	statsDock->setFloating(true);
 
-	QList<QDockWidget *> bottomDocks{ui->mixerDock, ui->transitionsDock, controlsDock};
+	QList<QDockWidget *> bottomDocks{ui->mixerDock, ui->transitionsDock, controlsDock, poldenDock};
 
-	resizeDocks(bottomDocks, {bottomDocksHeight, bottomDocksHeight, bottomDocksHeight}, Qt::Vertical);
-	resizeDocks(bottomDocks, {cx * 45 / 100, cx * 14 / 100, cx * 16 / 100}, Qt::Horizontal);
+	resizeDocks(bottomDocks, {bottomDocksHeight, bottomDocksHeight, bottomDocksHeight, bottomDocksHeight}, Qt::Vertical);
+	resizeDocks(bottomDocks, {cx * 40 / 100, cx * 14 / 100, cx * 16 / 100, cx * 16 / 100}, Qt::Horizontal);
 
 	int sideDockWidth = std::min(width() * 30 / 100, 280);
 	resizeDocks({ui->scenesDock, ui->sourcesDock}, {sideDockWidth, sideDockWidth}, Qt::Horizontal);
@@ -116,6 +117,7 @@ void OBSBasic::on_lockDocks_toggled(bool lock)
 	ui->mixerDock->setFeatures(mainFeatures);
 	ui->transitionsDock->setFeatures(mainFeatures);
 	controlsDock->setFeatures(mainFeatures);
+	poldenDock->setFeatures(mainFeatures);
 	statsDock->setFeatures(features);
 
 	for (int i = extraDocks.size() - 1; i >= 0; i--) {
@@ -203,6 +205,7 @@ bool OBSBasic::IsDockObjectNameUsed(const QString &name)
 	     << "mixerDock"
 	     << "transitionsDock"
 	     << "controlsDock"
+	     << "poldenDock"
 	     << "statsDock";
 	list << extraDockNames;
 	list << extraCustomDockNames;

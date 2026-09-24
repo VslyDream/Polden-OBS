@@ -32,6 +32,9 @@
 !COPYING
 !INSTALL
 !README.rst
+!POLDEN.md
+!Polden OBS.png
+!/scripts
 
 # Exclude lock files
 *.lock.json
