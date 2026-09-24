@@ -7,6 +7,7 @@
 Карта для следующего разработчика:
 
 - [Сборка Windows](docs/polden/build-windows.md) — зависимости, команды, проверка и ярлык в поиске Windows.
+- [Перенос локального OBS](docs/polden/local-obs-import.md) — профиль записи, коллекция сцен и InfoWriter.
 - [MP4 после записи](docs/polden/recording-mp4.md) — поведение OBS, вариант FFmpeg и точки интеграции.
 - [Premiere / Productions](docs/polden/premiere.md) — доступные API, ограничения версий и план интеграции.
 
