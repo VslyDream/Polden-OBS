@@ -1,3 +1,12 @@
+Polden OBS
+==========
+
+Polden OBS is a Windows fork based on the OBS Studio 32.2.2 release.
+See `project notes <POLDEN.md>`_ for the current changes, build instructions,
+and research on recording and Adobe Premiere integration.
+
+The original OBS Studio project information follows.
+
 OBS Studio <https://obsproject.com>
 ===================================
 
