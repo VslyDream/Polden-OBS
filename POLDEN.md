@@ -8,6 +8,7 @@
 
 - [Сборка Windows](docs/polden/build-windows.md) — зависимости, команды, проверка и ярлык в поиске Windows.
 - [Перенос локального OBS](docs/polden/local-obs-import.md) — профиль записи, коллекция сцен и InfoWriter.
+- [Проекты и пайплайн Polden](docs/polden/project-pipeline.md) — сущность игры, уровни автоматизации, шаблоны и открытые решения.
 - [MP4 после записи](docs/polden/recording-mp4.md) — поведение OBS, вариант FFmpeg и точки интеграции.
 - [Premiere / Productions](docs/polden/premiere.md) — доступные API, ограничения версий и план интеграции.
 
