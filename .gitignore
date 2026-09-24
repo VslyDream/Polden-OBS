@@ -10,6 +10,7 @@
 !/frontend
 !/libobs*
 !/plugins
+!/premiere
 !/shared
 !/test
 !.cirrus.xml
@@ -35,6 +36,7 @@
 !POLDEN.md
 !Polden OBS.png
 !/scripts
+/scripts/__pycache__/
 
 # Exclude lock files
 *.lock.json

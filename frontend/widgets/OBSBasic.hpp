@@ -57,6 +57,7 @@ class OBSBasicTransform;
 class OBSLogViewer;
 class OBSMissingFiles;
 class OBSProjector;
+class PoldenPanel;
 class VolumeControl;
 #ifdef YOUTUBE_ENABLED
 class YouTubeAppDock;
@@ -451,6 +452,7 @@ private:
 
 	QPointer<OBSDock> controlsDock;
 	QPointer<OBSDock> poldenDock;
+	QPointer<PoldenPanel> poldenPanel;
 	QPointer<OBSDock> mixerDock;
 
 public:

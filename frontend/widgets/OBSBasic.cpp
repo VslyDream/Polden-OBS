@@ -18,6 +18,7 @@
 ******************************************************************************/
 
 #include "OBSBasic.hpp"
+#include "PoldenPanel.hpp"
 #include "ui-config.h"
 
 #include "ColorSelect.hpp"
@@ -299,22 +300,12 @@ OBSBasic::OBSBasic(QWidget *parent) : OBSMainWindow(parent), undo_s(ui), ui(new 
 	/* Parenting is done there so controls will be deleted alongside controlsDock */
 	controlsDock->setWidget(controls);
 
-	/* Placeholder controls for planned post-recording workflows. */
-	auto *poldenPanel = new QWidget(this);
-	auto *poldenLayout = new QVBoxLayout(poldenPanel);
-	auto *convertButton = new QPushButton(tr("Convert to MP4"), poldenPanel);
-	auto *premiereButton = new QPushButton(tr("Send to Premiere"), poldenPanel);
-	convertButton->setEnabled(false);
-	premiereButton->setEnabled(false);
-	convertButton->setToolTip(tr("Planned feature"));
-	premiereButton->setToolTip(tr("Planned feature"));
-	poldenLayout->addWidget(convertButton);
-	poldenLayout->addWidget(premiereButton);
-	poldenLayout->addStretch();
+	poldenPanel = new PoldenPanel(this);
 	poldenDock = new OBSDock(this);
 	poldenDock->setObjectName(QStringLiteral("poldenDock"));
 	poldenDock->setWindowTitle(QStringLiteral("Polden"));
 	poldenDock->setWidget(poldenPanel);
+	connect(this, &OBSBasic::RecordingStarted, poldenPanel, [this]() { poldenPanel->recordingStarted(); });
 
 	connect(controls, &OBSBasicControls::StreamButtonClicked, this, &OBSBasic::StreamActionTriggered);
 
@@ -1416,6 +1407,8 @@ void OBSBasic::OBSInit()
 void OBSBasic::OnFirstLoad()
 {
 	OnEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
+	if (poldenPanel)
+		poldenPanel->activateSelectedCapture();
 
 #ifdef WHATSNEW_ENABLED
 	/* Attempt to load init screen if available */

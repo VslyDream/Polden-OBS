@@ -15,6 +15,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="Release")
     parser.add_argument("--jobs", type=int, default=4)
+    parser.add_argument("--build-dir", default="build_x64")
     args = parser.parse_args()
 
     install_path = subprocess.check_output(
@@ -30,7 +31,7 @@ def main() -> int:
     environment["Path"] = os.environ.get("Path", os.environ.get("PATH", ""))
     command = [
         str(msbuild),
-        str(ROOT / "build_x64" / "frontend" / "obs-studio.vcxproj"),
+        str(ROOT / args.build_dir / "frontend" / "obs-studio.vcxproj"),
         f"/p:Configuration={args.config}",
         "/p:Platform=x64",
         f"/m:{args.jobs}",

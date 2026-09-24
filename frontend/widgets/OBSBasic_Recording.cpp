@@ -18,6 +18,7 @@
 ******************************************************************************/
 
 #include "OBSBasic.hpp"
+#include "PoldenPanel.hpp"
 
 #include <components/UIValidation.hpp>
 #include <dialogs/OBSRemux.hpp>
@@ -182,6 +183,10 @@ void OBSBasic::RecordingStart()
 
 void OBSBasic::RecordingStop(int code, QString last_error)
 {
+	if (poldenPanel && outputHandler) {
+		poldenPanel->recordingStopped(QString::fromUtf8(outputHandler->lastRecordingPath.c_str()),
+					      code == OBS_OUTPUT_SUCCESS);
+	}
 	ui->statusbar->RecordingStopped();
 	emit RecordingStopped();
 
@@ -248,6 +253,8 @@ void OBSBasic::RecordingStop(int code, QString last_error)
 
 void OBSBasic::RecordingFileChanged(QString lastRecordingPath)
 {
+	if (poldenPanel)
+		poldenPanel->recordingFileChanged(lastRecordingPath);
 	QString str = QTStr("Basic.StatusBar.RecordingSavedTo");
 	ShowStatusBarMessage(str.arg(lastRecordingPath));
 

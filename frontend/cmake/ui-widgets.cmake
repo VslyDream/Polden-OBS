@@ -57,6 +57,10 @@ target_sources(
     widgets/OBSProjector.hpp
     widgets/OBSQTDisplay.cpp
     widgets/OBSQTDisplay.hpp
+    widgets/PoldenPanel.cpp
+    widgets/PoldenPanel.hpp
+    widgets/PoldenPipeline.cpp
+    widgets/PoldenPipeline.cpp
     widgets/StatusBarWidget.cpp
     widgets/StatusBarWidget.hpp
 )
