@@ -25,4 +25,8 @@ python scripts/build-windows.py --config Release --jobs 4
 
 Результат ожидается в `build_x64/rundir/Release/`, исполняемый файл — `bin/64bit/obs64.exe` (внутреннее имя оставлено для совместимости OBS). Для поиска по имени **Polden OBS** создаётся ярлык меню «Пуск» скриптом `scripts/Install-PoldenShortcut.ps1` после сборки. Иконка exe и ярлыка — `frontend/cmake/windows/polden-obs.ico`.
 
+Сборка Release завершена успешно на этой машине. Проверены запуск `obs64.exe --version` (`Polden OBS - 32.2.2-modified`), метаданные `ProductName` и `FileDescription` (`Polden OBS`) и цель ярлыка. Пробный запуск дошёл до `Startup complete` в логе OBS. Визуальное положение док-панели не проверено.
+
+Для переносимого архива запустите `python scripts/package-windows.py`: он копирует готовый каталог Release в ZIP без отладочных `.pdb` и локального профиля `config/`. Архив включает все рабочие библиотеки, ресурсы, плагины и `portable_mode.txt`.
+
 Сборочные каталоги и `.deps/` не входят в Git. При обновлении OBS повторно проверить CMake, изменения док-панелей, метаданные и иконку.

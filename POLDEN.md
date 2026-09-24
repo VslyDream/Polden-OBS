@@ -1,6 +1,6 @@
 # Polden OBS
 
-Локальный форк OBS Studio 32.2.2 для Windows. Исходный тег: `obsproject/obs-studio`, `32.2.2`; рабочая ветка: `polden-obs`. Базовый код и лицензия GPL-2.0-or-later сохранены.
+Форк OBS Studio 32.2.2 для Windows: [VslyDream/Polden-OBS](https://github.com/VslyDream/Polden-OBS). Исходный тег: `obsproject/obs-studio`, `32.2.2`; основная ветка: `polden-obs`. Базовый код и лицензия GPL-2.0-or-later сохранены.
 
 Сейчас изменены заголовок главного окна, метаданные Windows, значок и добавлена док-панель **Polden** с двумя неактивными кнопками. Дальнейшая цель — связать окончание записи, преобразование контейнера и импорт материала в Adobe Premiere.
 
