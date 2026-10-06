@@ -38,6 +38,7 @@ def main() -> int:
             "-G", "Visual Studio 17 2022", "-A", "x64,version=10.0.26100.0",
             "-DVIRTUALCAM_GUID=A3FCE0F5-3493-419F-958A-ABA1250EC20B", "-DENABLE_BROWSER=ON",
             "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc", "-DCMAKE_C_FLAGS=/DWIN32 /D_WINDOWS",
+            "-DOBS_VERSION_OVERRIDE=32.2.2",
             f"-DCEF_ROOT_DIR={ROOT / '.deps/cef_binary_6533_windows_x64'}",
         ], cwd=ROOT, env=environment)
         if result != 0:

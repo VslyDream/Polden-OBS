@@ -51,6 +51,9 @@ def main() -> None:
     personal = ROOT / args.personal_source
     if not (source / "bin" / "64bit" / "obs64.exe").is_file():
         raise SystemExit("Release build is missing; build Polden OBS first")
+    for relative in ("bin/64bit/Qt6Network.dll", "bin/64bit/tls/qschannelbackend.dll"):
+        if not (source / relative).is_file():
+            raise SystemExit(f"HTTPS update dependency is missing: {relative}; rebuild Polden OBS first")
 
     suffix = "-Personal" if args.include_local_settings else ""
     output = DIST / f"Polden-OBS-{VERSION}-Windows-x64{suffix}.zip"
