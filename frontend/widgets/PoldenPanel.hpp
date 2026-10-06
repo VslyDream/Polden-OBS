@@ -11,8 +11,7 @@ class QComboBox;
 class QLabel;
 class QPushButton;
 class QProcess;
-class QTcpServer;
-class QTcpSocket;
+class PoldenUpdater;
 
 class PoldenPanel : public QWidget {
 public:
@@ -22,6 +21,8 @@ public:
 	void recordingFileChanged(const QString &path);
 	void recordingStopped(const QString &path, bool success);
 	void activateSelectedCapture();
+	void checkForUpdates(bool manual = false);
+	bool processingFiles() const;
 
 private:
 	struct Project {
@@ -29,7 +30,6 @@ private:
 		QString name;
 		QString root;
 		QString footageDirectory;
-		QString premiereProject;
 		QString sourceUuid;
 		QString window;
 		int automation = 0;
@@ -39,10 +39,7 @@ private:
 		QString operatorName = QStringLiteral("Vasiliy");
 		QString directoryTemplate = QStringLiteral("{footage}/{date}");
 		QString filenameTemplate = QStringLiteral("{user}_{timestamp}.mp4");
-		QString binTemplate = QStringLiteral("1_VIDEO/{date}");
 		QString ffmpegPath;
-		QString bridgeKey;
-		bool queueWhenPremiereUnavailable = true;
 	};
 	struct Job {
 		QString id;
@@ -50,8 +47,6 @@ private:
 		QString sourcePath;
 		QString localPath;
 		QString destinationPath;
-		QString premiereProjectPath;
-		QString binPath;
 		QString recordedDate;
 		QString recordedTimestamp;
 		QString fileName;
@@ -59,9 +54,6 @@ private:
 		int targetLevel = 0;
 		bool converted = false;
 		bool copied = false;
-		bool imported = false;
-		bool timelineRequested = false;
-		bool timelineInserted = false;
 	};
 
 	OBSBasic *main;
@@ -69,8 +61,6 @@ private:
 	QComboBox *automationCombo = nullptr;
 	QLabel *statusLabel = nullptr;
 	QPushButton *editButton = nullptr;
-	QPushButton *importButton = nullptr;
-	QPushButton *timelineButton = nullptr;
 	QPushButton *retryButton = nullptr;
 	QVector<Project> projects;
 	QVector<Job> jobs;
@@ -84,11 +74,7 @@ private:
 	QStringList recordingFiles;
 	QProcess *converter = nullptr;
 	bool copying = false;
-	bool premiereBusy = false;
-	QString premiereJobId;
-	QString premiereAction;
-	QTcpServer *bridge = nullptr;
-	QDateTime premiereLastSeen;
+	PoldenUpdater *updater = nullptr;
 
 	QString configPath() const;
 	void load();
@@ -100,17 +86,13 @@ private:
 	Project *selectedProject();
 	const Project *selectedProject() const;
 	void setStatus(const QString &text);
-	void importLastRecording(bool timeline);
+	void openFilesFolder();
 	QString jobsPath() const;
 	void loadJobs();
 	void saveJobs();
 	Job *lastJobForSelectedProject();
 	Job *jobById(const QString &id);
-	const Project *projectById(const QString &id) const;
 	void pump();
 	void startConversion(Job &job);
 	void startCopy(Job &job);
-	void startPremiere(Job &job, bool timeline);
-	void startBridge();
-	void readBridgeRequest(QTcpSocket *socket);
 };

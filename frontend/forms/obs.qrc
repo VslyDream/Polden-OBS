@@ -19,6 +19,9 @@
     <file>images/up.svg</file>
     <file>images/obs.png</file>
     <file>images/polden.png</file>
+    <file>images/bug-report.svg</file>
+    <file>images/polden-update.svg</file>
+    <file alias="polden/Update-Polden.ps1">../../scripts/Update-Polden.ps1</file>
     <file>images/obs_macos.svg</file>
     <file>images/obs_paused.png</file>
     <file>images/obs_paused_macos.svg</file>

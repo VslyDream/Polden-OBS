@@ -16,6 +16,7 @@
 ******************************************************************************/
 
 #include <OBSApp.hpp>
+#include "ui-config.h"
 
 #include <components/VolumeAccessibleInterface.hpp>
 #ifdef __APPLE__
@@ -39,6 +40,7 @@
 #include <curl/curl.h>
 
 #include <fstream>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #ifdef _WIN32
@@ -917,6 +919,15 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef _WIN32
+	wchar_t executablePath[MAX_PATH] = {};
+	if (GetModuleFileNameW(nullptr, executablePath, MAX_PATH) != 0) {
+		const auto executableDirectory = std::filesystem::path(executablePath).parent_path();
+		const auto bundledLocale = executableDirectory / L"../../data/obs-studio/locale/en-US.ini";
+		if (std::filesystem::exists(bundledLocale)) {
+			SetCurrentDirectoryW(executableDirectory.c_str());
+		}
+	}
+
 	// Abort as early as possible if MSVC runtime is outdated
 	if (vc_runtime_outdated()) {
 		return 1;
@@ -1057,7 +1068,8 @@ int main(int argc, char *argv[])
 			exit(0);
 
 		} else if (arg_is(argv[i], "--version", "-V")) {
-			std::cout << "Polden OBS - " << App()->GetVersionString(false) << "\n";
+			std::cout << "Polden OBS - " << POLDEN_VERSION << " (OBS " << App()->GetVersionString(false)
+				  << ")\n";
 			exit(0);
 		}
 	}

@@ -1362,8 +1362,10 @@ void OBSBasic::OBSInit()
 #endif
 
 #if defined(_WIN32) || defined(__APPLE__)
+	if (ui->actionRepair)
+		ui->actionRepair->setVisible(false);
 	if (App()->IsUpdaterDisabled()) {
-		ui->actionCheckForUpdates->setEnabled(false);
+		ui->actionCheckForUpdates->setEnabled(!QCoreApplication::arguments().contains(QStringLiteral("--disable-updater")));
 #if defined(_WIN32)
 		ui->actionRepair->setEnabled(false);
 #endif
@@ -2146,7 +2148,7 @@ void OBSBasic::UpdateTitleBar()
 		name << "Studio ";
 	}
 
-	name << App()->GetVersionString(false);
+	name << POLDEN_VERSION << " (OBS " << App()->GetVersionString(false) << ")";
 	if (safe_mode) {
 		name << " (" << Str("TitleBar.SafeMode") << ")";
 	}

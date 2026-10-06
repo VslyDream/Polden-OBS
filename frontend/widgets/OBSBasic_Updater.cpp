@@ -18,6 +18,7 @@
 ******************************************************************************/
 
 #include "OBSBasic.hpp"
+#include "PoldenPanel.hpp"
 
 #include <dialogs/OBSWhatsNew.hpp>
 
@@ -173,58 +174,13 @@ void OBSBasic::ShowWhatsNew(const QString &url)
 
 void OBSBasic::TimedCheckForUpdates()
 {
-	if (App()->IsUpdaterDisabled()) {
-		return;
-	}
-	if (!config_get_bool(App()->GetAppConfig(), "General", "EnableAutoUpdates")) {
-		return;
-	}
-
-#if defined(ENABLE_SPARKLE_UPDATER)
-	CheckForUpdates(false);
-#elif _WIN32
-	long long lastUpdate = config_get_int(App()->GetAppConfig(), "General", "LastUpdateCheck");
-	uint32_t lastVersion = config_get_int(App()->GetAppConfig(), "General", "LastVersion");
-
-	if (lastVersion < LIBOBS_API_VER) {
-		lastUpdate = 0;
-		config_set_int(App()->GetAppConfig(), "General", "LastUpdateCheck", 0);
-	}
-
-	long long t = (long long)time(nullptr);
-	long long secs = t - lastUpdate;
-
-	if (secs > UPDATE_CHECK_INTERVAL) {
-		CheckForUpdates(false);
-	}
-#endif
+	// PoldenUpdater checks our own releases at startup.
 }
 
 void OBSBasic::CheckForUpdates(bool manualUpdate)
 {
-#if _WIN32
-	ui->actionCheckForUpdates->setEnabled(false);
-	ui->actionRepair->setEnabled(false);
-
-	if (updateCheckThread && updateCheckThread->isRunning()) {
-		return;
-	}
-	updateCheckThread.reset(new AutoUpdateThread(manualUpdate));
-	updateCheckThread->start();
-#elif defined(ENABLE_SPARKLE_UPDATER)
-	ui->actionCheckForUpdates->setEnabled(false);
-
-	if (updateCheckThread && updateCheckThread->isRunning()) {
-		return;
-	}
-
-	MacUpdateThread *mut = new MacUpdateThread(manualUpdate);
-	connect(mut, &MacUpdateThread::Result, this, &OBSBasic::MacBranchesFetched, Qt::QueuedConnection);
-	updateCheckThread.reset(mut);
-	updateCheckThread->start();
-#else
-	UNUSED_PARAMETER(manualUpdate);
-#endif
+	if (poldenPanel)
+		poldenPanel->checkForUpdates(manualUpdate);
 }
 
 void OBSBasic::MacBranchesFetched(const QString &branch, bool manualUpdate)

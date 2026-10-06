@@ -34,6 +34,7 @@
 !INSTALL
 !README.rst
 !POLDEN.md
+!POLDEN_VERSION
 !Polden OBS.png
 !/scripts
 /scripts/__pycache__/

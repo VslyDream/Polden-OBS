@@ -27,6 +27,13 @@ endif()
 add_executable(obs-studio)
 add_executable(OBS::studio ALIAS obs-studio)
 
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/POLDEN_VERSION")
+file(STRINGS "${CMAKE_SOURCE_DIR}/POLDEN_VERSION" POLDEN_VERSION LIMIT_COUNT 1)
+if(NOT POLDEN_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+  message(FATAL_ERROR "POLDEN_VERSION must contain a semantic version")
+endif()
+string(REPLACE "." "," POLDEN_VERSION_RESOURCE "${POLDEN_VERSION}")
+
 target_link_libraries(
   obs-studio
   PRIVATE

@@ -1,23 +1,33 @@
 # Связь с Premiere Pro 25.6.2
 
-Первая реализация состоит из локального сервера в Polden OBS (`PoldenPipeline.cpp`, `127.0.0.1:37941`) и UXP панели `premiere/polden-bridge`. OBS отправляет только готовый MP4 после копирования в LucidLink. Панель Premiere проверяет активный проект, открывает `Footage.prproj`, создаёт bins `1_VIDEO/{дата}`, импортирует файл и сохраняет проект. Кнопка таймлайна берёт активную секвенцию в проекте выбранной Production, вставляет медиа в её конец на V1/A1 и сохраняет этот проект. `.prproj` на диске напрямую не редактируется.
+> Архив прототипа версии 0.0.1. Начиная с Polden OBS 0.1.0 интеграция удалена; описанные ниже сервер, ресурсы и расширение больше не входят в приложение.
 
-## Подключение
+Исходники плагина планируется вести в отдельном проекте. Текущий встроенный код остаётся прототипом; точный обмен с OBS и предлагаемый контракт следующей версии описаны в [premiere-bridge-api.md](premiere-bridge-api.md).
 
-1. Собрать или распаковать Polden OBS и запустить его. Создать проект игры во вкладке **Polden**, указать корень `L:\<игра>`, проверить автоматически найденные папку видео и `Footage.prproj`, выбрать источник и окно «Захват игры».
-2. В настройках Polden выбрать `ffmpeg.exe`. Скопировать ключ связи кнопкой **Copy**.
-3. Установить `premiere/Polden-OBS-Bridge-premierepro.ccx` из архива сборки через Adobe Creative Cloud (двойной щелчок по файлу) и открыть **Window → UXP Plugins → Polden OBS Bridge**. Для разработки можно включить **Developer Mode** в настройках Plugins, перезапустить Premiere и загрузить папку `premiere/polden-bridge` через **UXP Developer Tool 2.2+**.
-4. Вставить ключ, нажать **Подключить** и оставить панель открытой. В Premiere открыть Production выбранной игры и активировать любой её проект. Для вставки на таймлайн также активировать нужную секвенцию.
+## Цель и устройство
 
-При отсутствии связи с панелью Premiere уровень 3 либо оставляет импорт в очереди, либо показывает ошибку с кнопкой повтора — это выбирается в настройках Polden. Панель опрашивает локальный сервер раз в 2,5 секунды. Ключ хранится локально в настройках OBS и панели Premiere; соединение принимает только localhost.
+При запуске Polden OBS автоматически копирует небольшое UXP-расширение в пользовательскую папку `%APPDATA%\Adobe\UXP\Plugins\External\com.polden.obs.premierebridge_0.2.0`. Оно скрыто из меню и должно запускаться вместе с Premiere; отдельную панель держать открытой не нужно. Расширение опрашивает локальный сервер Polden OBS (`127.0.0.1:37941`), а случайный ключ из `polden.json` записывается установщиком в `bridge-config.json`. Ключ не нужно вводить руками. Файлы расширения встроены в EXE через `frontend/forms/polden-premiere.qrc`; исходники — `premiere/polden-bridge`.
 
-## Поведение и ограничения первой версии
+При первом копировании или обновлении файлов Polden показывает предупреждение: Premiere нужно запустить или перезапустить, чтобы оно загрузило новую версию расширения. Если Premiere уже открыт, Polden **не закрывает его** и сохраняет задания в очереди либо показывает ошибку согласно настройке. В настройках Polden есть кнопка восстановления установки. После успешного запроса расширения Polden показывает «Premiere integration connected».
 
-- Путь активного проекта Premiere должен находиться внутри папки Production, содержащей указанный `00_Footage/…Footage.prproj`. Так предотвращается импорт при активной Production другой игры. Для Premiere 25.6 нет официального UXP метода получения самой Production; проверка основана на путях проектов.
+Внешний процесс умеет конвертировать и раскладывать файлы, но для обращения к **активному** проекту, bins и секвенции внутри Premiere используется UXP API. OBS отправляет расширению только готовый MP4 после копирования в LucidLink. Расширение проверяет активный проект, открывает `Footage.prproj`, создаёт bins `1_VIDEO/{дата}`, импортирует файл и сохраняет проект. Кнопка таймлайна берёт активную секвенцию в проекте выбранной Production, вставляет медиа в её конец на V1/A1 и сохраняет этот проект. `.prproj` на диске напрямую не редактируется.
+
+## Установка без Creative Cloud
+
+1. Запустить новую сборку Polden OBS. На вкладке **Polden** появится состояние установки. Никаких `.ccx`, Creative Cloud, UXP Developer Tool и ручного ввода ключа в обычном сценарии нет.
+2. После первого запуска Polden открыть или перезапустить Premiere. Скрытое расширение должно подключиться само, когда обе программы работают. Открывать окно расширения не требуется.
+3. В Premiere открыть Production нужной игры и активировать любой её проект. Для вставки на таймлайн активировать нужную секвенцию.
+
+Путь `External` и формат имени папки `id_version` описал [сотрудник команды Premiere на Adobe Community](https://community.adobe.com/bug-reports-733/in-premiere-pro-25-6-beta-my-uxp-plug-in-does-not-load-906630); путь Windows приведён на [форуме разработчиков Adobe](https://forums.creativeclouddeveloper.com/t/how-hard-is-to-fix-a-very-common-requested-issue/11930/4). [Adobe документирует](https://developer.adobe.com/premiere-pro/uxp/plugins/) `hostUIContext.hideFromMenu` как запуск скрытого расширения вместе с Premiere. При этом **копирование в `External` не перечислено среди официальных способов распространения** в [руководстве Adobe по установке](https://developer.adobe.com/premiere-pro/uxp/plugins/distribution/install/). В новых версиях Premiere этот путь или поведение может измениться; установка и автозапуск должны проверяться на целевой версии. Если Adobe потребует Developer Mode для локально размещённого расширения, это может стать разовым действием в настройках Premiere; пока такая необходимость на этой машине не проверена.
+
+## Состояние проверки
+
+- Новая сборка OBS с встроенными файлами расширения прошла. Premiere в момент изменения уже был открыт; загружать новые файлы в работающий процесс без перезапуска нельзя. Пользовательский сеанс Premiere автоматически не закрывать.
+- На Premiere 25.6.2 ещё не подтверждены: обнаружение напрямую скопированного расширения, его скрытый запуск, импорт в реальную Production и вставка в реальную секвенцию. Сообщение «установлено» в OBS означает наличие файлов, а «подключено» — реальный ответ расширения.
 - Если `Footage.prproj` заблокирован другим участником Production или открыт только для чтения, импорт/сохранение может завершиться ошибкой. Задание сохраняется, в OBS появляется ошибка и кнопка повтора.
-- Импорт распознаёт ранее добавленный файл по полному пути медиа в целевом bin. Подтверждённые команды также сохраняются по ID задания в локальном хранилище панели. После потери подтверждения во время вставки на таймлайн возможно повторное добавление; до испытания на рабочей Production используйте кнопку на копии секвенции.
-- Для автоматической работы панель UXP должна быть загружена, открыта и связана ключом. На машине пока не проверены установка `.ccx`, импорт в реальную Production и вставка в реальную секвенцию. Компиляция OBS не подтверждает эти действия.
+- Импорт распознаёт ранее добавленный файл по полному пути медиа в целевом bin. Подтверждённые команды также сохраняются по ID задания в локальном хранилище расширения. После потери подтверждения во время вставки на таймлайн возможно повторное добавление; до испытания на рабочей Production используйте кнопку на копии секвенции.
+- Путь активного проекта Premiere должен находиться внутри папки Production, содержащей указанный `00_Footage/…Footage.prproj`. Для Premiere 25.6 нет официального UXP метода получения самой Production; проверка основана на путях проектов.
 
 ## Основание API
 
-Premiere 25.6 предоставляет [Project.open, getActiveProject, importFiles, save и getActiveSequence](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/project), [FolderItem.createBinAction и getItems](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/folderitem), [Sequence.getEndTime](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/sequence) и [SequenceEditor.createInsertProjectItemAction](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/sequenceeditor). Adobe описывает [установку `.ccx`](https://developer.adobe.com/premiere-pro/uxp/plugins/distribution/install/) и [UXP Developer Tool](https://developer.adobe.com/premiere-pro/uxp/plugins/).
+Premiere 25.6 предоставляет [Project.open, getActiveProject, importFiles, save и getActiveSequence](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/project), [FolderItem.createBinAction и getItems](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/folderitem), [Sequence.getEndTime](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/sequence) и [SequenceEditor.createInsertProjectItemAction](https://developer.adobe.com/premiere-pro/uxp/ppro-reference/classes/sequenceeditor). [Жизненный цикл UXP](https://developer.adobe.com/premiere-pro/uxp/plugins/concepts/entrypoints/) содержит `plugin.create()`, используемый для фонового опроса.

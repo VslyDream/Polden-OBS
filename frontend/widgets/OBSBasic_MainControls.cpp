@@ -378,17 +378,8 @@ void OBSBasic::on_actionCheckForUpdates_triggered()
 
 void OBSBasic::on_actionRepair_triggered()
 {
-#if defined(_WIN32)
-	ui->actionCheckForUpdates->setEnabled(false);
-	ui->actionRepair->setEnabled(false);
-
-	if (updateCheckThread && updateCheckThread->isRunning()) {
-		return;
-	}
-
-	updateCheckThread.reset(new AutoUpdateThread(false, true));
-	updateCheckThread->start();
-#endif
+	// The upstream repair action must never replace Polden with OBS Studio.
+	CheckForUpdates(true);
 }
 
 void OBSBasic::on_actionRestartSafe_triggered()

@@ -61,6 +61,8 @@ target_sources(
     widgets/PoldenPanel.hpp
     widgets/PoldenPipeline.cpp
     widgets/PoldenPipeline.cpp
+    utility/PoldenUpdater.cpp
+    utility/PoldenUpdater.hpp
     widgets/StatusBarWidget.cpp
     widgets/StatusBarWidget.hpp
 )
