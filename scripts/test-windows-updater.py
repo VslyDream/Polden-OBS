@@ -38,10 +38,12 @@ def exercise(case):
         old_files = {
             "bin/64bit/obs64.exe": b"old executable",
             "data/old.txt": b"obsolete bundled resource",
+            "portable_mode.txt": b"",
         }
         new_files = {
             "bin/64bit/obs64.exe": b"new executable",
             "data/new.txt": b"new bundled resource",
+            "portable_mode.txt": b"",
         }
         user_files = {
             "config/obs-studio/user.ini": b"user settings",
@@ -87,7 +89,7 @@ def exercise(case):
         request = {
             "root": str(install), "pid": 2147483647, "version": "0.1.1",
             "sha256": digest(archive_path.read_bytes()),
-            "settings": str(install / "config" / "obs-studio"), "portable": True,
+            "settings": str(install / "config" / "obs-studio"), "portable": case != "regular_mode",
         }
         if case == "bad_archive_hash":
             request["sha256"] = "0" * 64
@@ -100,7 +102,7 @@ def exercise(case):
             "-RequestPath", str(request_path), "-NoRestart", "-Quiet",
         ], capture_output=True, text=True, timeout=45)
         log = (request_dir / "update.log").read_text(encoding="utf-8-sig")
-        if case == "success":
+        if case in ("success", "regular_mode"):
             assert result.returncode == 0, (result.stderr, log)
             assert (install / "bin/64bit/obs64.exe").read_bytes() == new_files["bin/64bit/obs64.exe"]
             assert not (install / "data/old.txt").exists()
@@ -111,6 +113,9 @@ def exercise(case):
             assert len(backups) == 1
             assert (backups[0] / "settings/user.ini").read_bytes() == b"user settings"
             assert (backups[0] / "files/bin/64bit/obs64.exe").read_bytes() == b"old executable"
+            installed_manifest = json.loads((install / "polden-install.json").read_text(encoding="utf-8"))
+            assert (install / "portable_mode.txt").exists() == (case != "regular_mode")
+            assert ("portable_mode.txt" in installed_manifest["files"]) == (case != "regular_mode")
         else:
             assert result.returncode != 0, log
             assert snapshot(install) == before, log
@@ -125,5 +130,5 @@ def exercise(case):
 
 
 if __name__ == "__main__":
-    for name in ("success", "bad_archive_hash", "bad_file_hash", "traversal", "settings_in_archive", "custom_collision", "downgrade", "rollback", "link_escape"):
+    for name in ("success", "regular_mode", "bad_archive_hash", "bad_file_hash", "traversal", "settings_in_archive", "custom_collision", "downgrade", "rollback", "link_escape"):
         exercise(name)

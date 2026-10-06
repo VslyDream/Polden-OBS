@@ -138,6 +138,15 @@ try {
             throw "Update file checksum does not match: $relative"
         }
     }
+    if (-not $request.portable -and $new.Files.ContainsKey('portable_mode.txt')) {
+        # A portable release must not switch an existing regular installation
+        # away from its settings in AppData on the next start.
+        $new.Files.Remove('portable_mode.txt')
+        $installedManifest = Get-Content -LiteralPath (Join-Path $stage 'polden-install.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        $installedManifest.files.PSObject.Properties.Remove('portable_mode.txt')
+        [System.IO.File]::WriteAllText((Join-Path $stage 'polden-install.json'),
+            ($installedManifest | ConvertTo-Json -Depth 6), [System.Text.UTF8Encoding]::new($false))
+    }
     # Prepare everything while OBS is still alive, then wait for a normal exit.
     $parent = Get-Process -Id ([int] $request.pid) -ErrorAction SilentlyContinue
     if ($null -ne $parent -and -not $parent.WaitForExit(180000)) {
