@@ -31,6 +31,8 @@ jobs:
           cmake --preset macos-ci \
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
             -DOBS_VERSION_OVERRIDE=32.2.2 \
+            -DCMAKE_XCODE_ATTRIBUTE_COMPILATION_CACHE_ENABLE_CACHING=NO \
+            -DCMAKE_CXX_FLAGS=-Wno-unused-const-variable \
             -DOBS_CODESIGN_IDENTITY=- \
             -DSPARKLE_APPCAST_URL= -DSPARKLE_PUBLIC_KEY= \
             -DENABLE_VIRTUALCAM=ON
