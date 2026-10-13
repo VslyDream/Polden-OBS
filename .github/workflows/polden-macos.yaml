@@ -1,0 +1,69 @@
+name: Polden macOS release
+run-name: Polden 0.1.0 macOS builds
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-26
+          - arch: x86_64
+            runner: macos-26-intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Save packaging script
+        run: cp scripts/package-macos.py "$RUNNER_TEMP/package-macos.py"
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: polden-v0.1.0
+          submodules: recursive
+          fetch-depth: 0
+      - name: Configure
+        run: |
+          xcodebuild -version
+          cmake --preset macos-ci \
+            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
+            -DOBS_VERSION_OVERRIDE=32.2.2 \
+            -DOBS_CODESIGN_IDENTITY=- \
+            -DSPARKLE_APPCAST_URL= -DSPARKLE_PUBLIC_KEY= \
+            -DENABLE_VIRTUALCAM=ON
+      - name: Build
+        run: |
+          cmake --build build_macos --config Release --target obs-studio --parallel 3 -- \
+            ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO
+          cmake --install build_macos --config Release --prefix "$RUNNER_TEMP/polden-install"
+      - name: Package and verify
+        env:
+          POLDEN_ARCH: ${{ matrix.arch }}
+        run: python3 "$RUNNER_TEMP/package-macos.py" "$RUNNER_TEMP/polden-install/OBS.app" "$RUNNER_TEMP/polden-dist"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: Polden-OBS-0.1.0-macOS-${{ matrix.arch }}
+          path: ${{ runner.temp }}/polden-dist/*
+          retention-days: 14
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: Polden-OBS-0.1.0-macOS-*
+          path: dist
+          merge-multiple: true
+      - name: Verify checksums and add to existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          sha256sum --check *.sha256
+          gh release view polden-v0.1.0 --repo VslyDream/Polden-OBS
+          gh release upload polden-v0.1.0 *.zip *.sha256 --repo VslyDream/Polden-OBS
