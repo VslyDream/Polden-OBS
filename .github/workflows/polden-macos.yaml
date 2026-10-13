@@ -50,6 +50,21 @@ jobs:
           name: Polden-OBS-0.1.0-macOS-${{ matrix.arch }}
           path: ${{ runner.temp }}/polden-dist/*
           retention-days: 14
+      - name: Preserve compiled application if packaging fails
+        if: failure()
+        run: |
+          mkdir -p "$RUNNER_TEMP/polden-recovery"
+          app=$(find "$RUNNER_TEMP/polden-install" -maxdepth 1 -name '*.app' -type d -print -quit)
+          if [ -n "$app" ]; then
+            ditto -c -k --sequesterRsrc --keepParent "$app" "$RUNNER_TEMP/polden-recovery/application.zip"
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: failure()
+        with:
+          name: Polden-macOS-recovery-${{ matrix.arch }}
+          path: ${{ runner.temp }}/polden-recovery/*
+          if-no-files-found: ignore
+          retention-days: 7
   publish:
     needs: build
     runs-on: ubuntu-24.04

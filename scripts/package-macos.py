@@ -45,7 +45,7 @@ def main():
     run("codesign", "--force", "--deep", "--sign", "-", app)
     run("codesign", "--verify", "--deep", "--strict", app)
     executable = app / "Contents/MacOS" / info["CFBundleExecutable"]
-    run("lipo", "-verify_arch", arch, executable)
+    run("lipo", executable, "-verify_arch", arch)
     result = run(executable, "--version", capture_output=True, text=True)
     print(result.stdout.strip())
     assert "Polden OBS - 0.1.0 (OBS 32.2.2)" in result.stdout
@@ -54,6 +54,8 @@ def main():
         if file.is_file() and (file.suffix in (".dylib", ".so") or file == executable):
             dependencies = run("otool", "-L", file, capture_output=True, text=True).stdout.splitlines()[1:]
             for line in dependencies:
+                if "(compatibility version" not in line:
+                    continue
                 dependency = line.strip().split(" (", 1)[0]
                 assert not dependency.startswith(("/Users/", "/opt/homebrew/", "/usr/local/")), (file, dependency)
     archive = output / f"Polden-OBS-{version}-macOS-{arch}.zip"
