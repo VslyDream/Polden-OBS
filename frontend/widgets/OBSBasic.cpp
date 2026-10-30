@@ -1091,6 +1091,7 @@ void OBSBasic::OBSInit()
 
 	ResetOutputs();
 	CreateHotkeys();
+	poldenPanel->initializeMarkers();
 
 	InitPrimitives();
 
@@ -1476,6 +1477,7 @@ void OBSBasic::applicationShutdown() noexcept
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 	obs_hotkey_set_callback_routing_func(nullptr, nullptr);
+	poldenPanel->shutdownMarkers();
 	ClearHotkeys();
 
 	service = nullptr;

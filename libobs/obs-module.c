@@ -492,6 +492,11 @@ bool obs_get_module_allow_disable(const char *name)
 
 static void load_all_callback(void *param, const struct obs_module_info2 *info)
 {
+	/* Polden provides recording markers in the frontend. Ignore legacy copies
+	 * left in portable installations so they cannot write duplicate sidecars. */
+	if (astrcmpi(info->name, "OBSInfoWriter") == 0 || astrcmpi(info->name, "libOBSInfoWriter") == 0)
+		return;
+
 	struct fail_info *fail_info = param;
 	obs_module_t *module;
 	obs_module_t *disabled_module;

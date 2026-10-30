@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import urllib.error
 import urllib.parse
@@ -46,6 +47,30 @@ def api(token, url, method="GET", data=None, content_type="application/json"):
         raise RuntimeError(f"GitHub HTTP {error.code}: {detail}") from None
 
 
+def release_notes(history, version, releases):
+    current = tuple(map(int, version.split(".")))
+    previous = []
+    for release in releases:
+        match = re.fullmatch(r"polden-v(\d+)\.(\d+)\.(\d+)", release["tag_name"])
+        if match and not release["draft"] and not release.get("prerelease", False):
+            candidate = tuple(map(int, match.groups()))
+            if candidate < current:
+                previous.append(candidate)
+    baseline = max(previous) if previous else current
+    sections = []
+    for section in re.split(r"^## ", history, flags=re.MULTILINE)[1:]:
+        heading, _, body = section.partition("\n")
+        name = heading.split(" — ", 1)[0].strip()
+        if not re.fullmatch(r"\d+\.\d+\.\d+", name):
+            continue
+        candidate = tuple(map(int, name.split(".")))
+        if candidate == current or baseline < candidate < current:
+            sections.append(f"### {name}\n\n{body.strip()}")
+    if not sections:
+        raise RuntimeError("Release notes are missing for " + version)
+    return "\n\n".join(sections)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -77,12 +102,11 @@ def main():
     if subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip():
         raise RuntimeError("Commit the release source before publishing")
     history = (ROOT / "docs/polden/releases.md").read_text(encoding="utf-8")
-    section = history.split("## " + version + " — ", 1)[1].split("\n## ", 1)[0]
-    changes = section.split("\n", 1)[1].strip()
-    body = f"Первый публичный релиз Polden OBS {version} для Windows x64. База: OBS Studio 32.2.2.\n\n{changes}\n\n" + (
+    changes = release_notes(history, version, releases)
+    body = f"Polden OBS {version} для Windows x64. База: OBS Studio 32.2.2.\n\n{changes}\n\n" + (
         "### Запуск\n\nСкачайте `" + archive.name + "`, распакуйте в папку с правом записи и запустите "
         "`Polden OBS/bin/64bit/obs64.exe`. Архив работает в переносимом режиме; настройки хранятся в `config/`. "
-        "Персональные профили, сцены, журналы и InfoWriter в публичный архив не включены.\n\n"
+        "Маркеры встроены в приложение. Персональные профили, сцены и журналы в публичный архив не включены.\n\n"
         "Будущие обновления: проверка при запуске, значок рядом с баг-репортом, обновление с резервной копией "
         "настроек и сохранением сторонних плагинов. Во время записи, трансляции и обработки файлов установка блокируется.\n\n"
         "Лицензия: GPL-2.0-or-later. Исходники этой сборки доступны по тегу релиза."

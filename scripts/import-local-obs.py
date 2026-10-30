@@ -1,7 +1,7 @@
-"""Import the active OBS recording profile and InfoWriter into the local build.
+"""Import the active OBS recording profile and scenes into the local build.
 
-Only the portable build is modified. The source OBS profile is read only, and
-personal settings and plugin binaries remain outside Git.
+Only the portable build is modified. The source OBS profile is read only.
+Personal settings remain outside Git. Polden has built-in recording markers.
 """
 
 import argparse
@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNTIME = ROOT / "build_x64" / "rundir" / "Release"
+RUNTIME = ROOT / "latest"
 SOURCE_CONFIG = Path(os.environ["APPDATA"]) / "obs-studio"
 
 
@@ -93,11 +93,6 @@ def main() -> None:
         SOURCE_CONFIG / "basic" / "scenes" / scene_file,
         target_config / "basic" / "scenes" / scene_file,
     )
-    copy_with_backup(
-        args.install_root / "obs-plugins" / "64bit" / "OBSInfoWriter.dll",
-        RUNTIME / "obs-plugins" / "64bit" / "OBSInfoWriter.dll",
-    )
-
     backup_user = target_user.with_name("user.ini.before-obs-import")
     if not backup_user.exists():
         shutil.copy2(target_user, backup_user)

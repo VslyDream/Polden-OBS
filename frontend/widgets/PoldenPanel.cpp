@@ -7,6 +7,8 @@
 
 #include "ui-config.h"
 #include <utility/PoldenUpdater.hpp>
+#include <utility/PoldenMarkers.hpp>
+#include <components/FlowLayout.hpp>
 
 #include <QDesktopServices>
 #include <QComboBox>
@@ -29,6 +31,7 @@
 #include <QSaveFile>
 #include <QSignalBlocker>
 #include <QStandardPaths>
+#include <QTabWidget>
 #include <QToolButton>
 #include <QUrl>
 #include <QUuid>
@@ -127,6 +130,12 @@ PoldenPanel::PoldenPanel(OBSBasic *main) : QWidget(main), main(main)
 	automationRow->addWidget(automationCombo, 1);
 	layout->addLayout(automationRow);
 
+	markerButtonsWidget = new QWidget(this);
+	markerButtonsWidget->setObjectName(QStringLiteral("poldenMarkerButtons"));
+	new FlowLayout(markerButtonsWidget, 0, 6, 6);
+	markerButtonsWidget->hide();
+	layout->addWidget(markerButtonsWidget);
+
 	auto *openFolderButton = new QPushButton(tr("Open files folder"), this);
 	openFolderButton->setObjectName(QStringLiteral("poldenOpenFilesFolder"));
 	layout->addWidget(openFolderButton);
@@ -136,6 +145,7 @@ PoldenPanel::PoldenPanel(OBSBasic *main) : QWidget(main), main(main)
 	retryButton = new QPushButton(tr("Retry last failed step"), this);
 	layout->addWidget(retryButton);
 	auto *settingsButton = new QPushButton(tr("Polden settings…"), this);
+	settingsButton->setObjectName(QStringLiteral("poldenSettings"));
 	layout->addWidget(settingsButton);
 	layout->addStretch();
 	auto *footer = new QHBoxLayout;
@@ -198,6 +208,44 @@ void PoldenPanel::checkForUpdates(bool manual)
 	updater->check(manual);
 }
 
+void PoldenPanel::initializeMarkers()
+{
+	markers = new PoldenMarkers(this, [this](const QString &text) { setStatus(text); });
+	refreshMarkerButtons();
+}
+
+void PoldenPanel::shutdownMarkers()
+{
+	delete markers;
+	markers = nullptr;
+	markerButtonsWidget->hide();
+}
+
+void PoldenPanel::refreshMarkerButtons()
+{
+	auto *layout = markerButtonsWidget->layout();
+	while (auto *item = layout->takeAt(0)) {
+		delete item->widget();
+		delete item;
+	}
+	if (markers) {
+		for (int color = 0; color < 8; ++color) {
+			if (!markers->buttonVisible(color)) {
+				continue;
+			}
+			auto *button = new QPushButton(PoldenMarkers::colorIcon(color), PoldenMarkers::colorName(color),
+						       markerButtonsWidget);
+			button->setObjectName(QStringLiteral("poldenMarkerButton%1").arg(color));
+			button->setToolTip(tr("Add marker: %1").arg(PoldenMarkers::colorName(color)));
+			button->setAccessibleName(button->toolTip());
+			button->setEnabled(markerRecording);
+			connect(button, &QPushButton::clicked, this, [this, color]() { markers->addMarker(color); });
+			layout->addWidget(button);
+		}
+	}
+	markerButtonsWidget->setVisible(layout->count() > 0);
+}
+
 bool PoldenPanel::processingFiles() const
 {
 	return copying || (converter && converter->state() != QProcess::NotRunning);
@@ -223,8 +271,6 @@ void PoldenPanel::load()
 	settings.operatorName = options.value(QStringLiteral("operatorName")).toString(settings.operatorName);
 	settings.directoryTemplate =
 		options.value(QStringLiteral("directoryTemplate")).toString(settings.directoryTemplate);
-	settings.filenameTemplate =
-		options.value(QStringLiteral("filenameTemplate")).toString(settings.filenameTemplate);
 	settings.ffmpegPath = options.value(QStringLiteral("ffmpegPath")).toString(settings.ffmpegPath);
 	selectedProjectId = root.value(QStringLiteral("selectedProjectId")).toString();
 	for (const QJsonValue &value : root.value(QStringLiteral("projects")).toArray()) {
@@ -257,7 +303,6 @@ void PoldenPanel::save()
 	}
 	QJsonObject options{{QStringLiteral("operatorName"), settings.operatorName},
 			    {QStringLiteral("directoryTemplate"), settings.directoryTemplate},
-			    {QStringLiteral("filenameTemplate"), settings.filenameTemplate},
 			    {QStringLiteral("ffmpegPath"), settings.ffmpegPath}};
 	QJsonObject root{{QStringLiteral("schemaVersion"), 1},
 			 {QStringLiteral("selectedProjectId"), selectedProjectId},
@@ -516,10 +561,19 @@ void PoldenPanel::showSettingsDialog()
 	QDialog dialog(this);
 	dialog.setWindowTitle(tr("Polden settings"));
 	auto *layout = new QVBoxLayout(&dialog);
+	auto *tabs = new QTabWidget(&dialog);
+	tabs->setObjectName(QStringLiteral("poldenSettingsTabs"));
+	auto *general = new QWidget(tabs);
+	auto *generalLayout = new QVBoxLayout(general);
+	tabs->addTab(general, tr("General"));
+	auto *markerSettings = markers ? new PoldenMarkerSettings(markers, tabs) : nullptr;
+	if (markerSettings) {
+		tabs->addTab(markerSettings, tr("Markers"));
+	}
+	layout->addWidget(tabs);
 	auto *form = new QFormLayout;
 	auto *operatorName = new QLineEdit(settings.operatorName, &dialog);
 	auto *directoryTemplate = new QLineEdit(settings.directoryTemplate, &dialog);
-	auto *filenameTemplate = new QLineEdit(settings.filenameTemplate, &dialog);
 	auto *ffmpegPath = new QLineEdit(settings.ffmpegPath, &dialog);
 	auto *browseFfmpeg = new QPushButton(tr("Browse…"), &dialog);
 	auto *ffmpegRow = new QHBoxLayout;
@@ -540,30 +594,40 @@ void PoldenPanel::showSettingsDialog()
 						    : QStringLiteral("L:/Meowgic/02_Assets/01_VIDEO");
 		QString path = previewPath(directoryTemplate->text(), gameRoot, footage, operatorName->text(),
 					   QDateTime::currentDateTime());
-		QString name = previewPath(filenameTemplate->text(), gameRoot, footage, operatorName->text(),
-					   QDateTime::currentDateTime());
+		QString name = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH-mm-ss")) +
+			       QStringLiteral(".mp4");
 		preview->setText(tr("Example: %1").arg(QDir(path).filePath(name)));
 	};
 	connect(directoryTemplate, &QLineEdit::textChanged, &dialog, updatePreview);
-	connect(filenameTemplate, &QLineEdit::textChanged, &dialog, updatePreview);
 	connect(operatorName, &QLineEdit::textChanged, &dialog, updatePreview);
 	updatePreview();
 	form->addRow(tr("Recorder name"), operatorName);
 	form->addRow(tr("Video folder template"), directoryTemplate);
-	form->addRow(tr("Filename template"), filenameTemplate);
+	form->addRow(tr("Filename"),
+		     new QLabel(tr("Original recording name (only extension changes to .mp4)"), &dialog));
 	form->addRow(tr("FFmpeg"), ffmpegRow);
-	layout->addLayout(form);
-	layout->addWidget(preview);
+	generalLayout->addLayout(form);
+	generalLayout->addWidget(preview);
+	generalLayout->addStretch();
 	auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
 	layout->addWidget(buttons);
-	connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
+		if (markerSettings && !markerSettings->validate()) {
+			tabs->setCurrentWidget(markerSettings);
+			return;
+		}
+		dialog.accept();
+	});
 	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 	if (dialog.exec() != QDialog::Accepted) {
 		return;
 	}
 	settings.operatorName = operatorName->text().trimmed();
 	settings.directoryTemplate = directoryTemplate->text().trimmed();
-	settings.filenameTemplate = filenameTemplate->text().trimmed();
 	settings.ffmpegPath = ffmpegPath->text().trimmed();
+	if (markerSettings) {
+		markerSettings->apply();
+	}
 	save();
+	refreshMarkerButtons();
 }

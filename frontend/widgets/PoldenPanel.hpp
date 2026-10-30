@@ -12,6 +12,7 @@ class QLabel;
 class QPushButton;
 class QProcess;
 class PoldenUpdater;
+class PoldenMarkers;
 
 class PoldenPanel : public QWidget {
 public:
@@ -23,6 +24,8 @@ public:
 	void activateSelectedCapture();
 	void checkForUpdates(bool manual = false);
 	bool processingFiles() const;
+	void initializeMarkers();
+	void shutdownMarkers();
 
 private:
 	struct Project {
@@ -38,7 +41,6 @@ private:
 	struct Settings {
 		QString operatorName = QStringLiteral("Vasiliy");
 		QString directoryTemplate = QStringLiteral("{footage}/{date}");
-		QString filenameTemplate = QStringLiteral("{user}_{timestamp}.mp4");
 		QString ffmpegPath;
 	};
 	struct Job {
@@ -75,6 +77,10 @@ private:
 	QProcess *converter = nullptr;
 	bool copying = false;
 	PoldenUpdater *updater = nullptr;
+	PoldenMarkers *markers = nullptr;
+	QWidget *markerButtonsWidget = nullptr;
+	bool markerRecording = false;
+	void refreshMarkerButtons();
 
 	QString configPath() const;
 	void load();

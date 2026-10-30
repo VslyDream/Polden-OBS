@@ -106,6 +106,10 @@ void PluginManager::loadModules_()
 		}
 		modules_.clear();
 		for (auto it : data) {
+			const auto name = it.value("module_name", std::string());
+			if (QString::fromStdString(name).compare(QStringLiteral("OBSInfoWriter"), Qt::CaseInsensitive) == 0 ||
+			    QString::fromStdString(name).compare(QStringLiteral("libOBSInfoWriter"), Qt::CaseInsensitive) == 0)
+				continue;
 			ModuleInfo obsModule;
 			try {
 				obsModule = {it.at("display_name"),

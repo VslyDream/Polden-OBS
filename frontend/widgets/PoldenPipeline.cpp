@@ -2,6 +2,8 @@
 
 #include <OBSApp.hpp>
 #include <QComboBox>
+#include <QPushButton>
+#include <utility/PoldenMarkers.hpp>
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -16,7 +18,6 @@
 #include <QTimer>
 #include <QUuid>
 
-#include <algorithm>
 #include <memory>
 
 namespace {
@@ -83,13 +84,8 @@ QString copyVerified(const QString &source, const QString &target, const QString
 	return {};
 }
 
-QString copyVideoAndInfoWriter(const QString &sourceVideo, const QString &targetVideo, const QString &originalVideo,
-			       const QString &jobId)
+QString copyRecordingSidecars(const QString &originalVideo, const QString &targetVideo, const QString &jobId)
 {
-	QString error = copyVerified(sourceVideo, targetVideo, jobId);
-	if (!error.isEmpty()) {
-		return error;
-	}
 	const QFileInfo original(originalVideo);
 	const QFileInfo target(targetVideo);
 	for (const QString &extension : {QStringLiteral("csv"), QStringLiteral("txt")}) {
@@ -100,12 +96,19 @@ QString copyVideoAndInfoWriter(const QString &sourceVideo, const QString &target
 		}
 		QString destination = target.absolutePath() + QDir::separator() + target.completeBaseName() +
 				      QStringLiteral(".") + extension;
-		error = copyVerified(sidecar, destination, jobId + QStringLiteral("-") + extension);
+		QString error = copyVerified(sidecar, destination, jobId + QStringLiteral("-") + extension);
 		if (!error.isEmpty()) {
 			return error;
 		}
 	}
 	return {};
+}
+
+QString copyVideoAndMarkers(const QString &sourceVideo, const QString &targetVideo, const QString &originalVideo,
+			    const QString &jobId)
+{
+	QString error = copyVerified(sourceVideo, targetVideo, jobId);
+	return error.isEmpty() ? copyRecordingSidecars(originalVideo, targetVideo, jobId) : error;
 }
 } // namespace
 
@@ -202,6 +205,11 @@ PoldenPanel::Job *PoldenPanel::lastJobForSelectedProject()
 
 void PoldenPanel::recordingStarted()
 {
+	if (markers) {
+		markers->recordingStarted();
+	}
+	markerRecording = markers != nullptr;
+	refreshMarkerButtons();
 	projectCombo->setEnabled(false);
 	const Project *project = selectedProject();
 	recordingProjectId = project ? project->id : QString();
@@ -225,6 +233,11 @@ void PoldenPanel::recordingFileChanged(const QString &path)
 
 void PoldenPanel::recordingStopped(const QString &path, bool success)
 {
+	if (markers) {
+		markers->recordingStopped();
+	}
+	markerRecording = false;
+	refreshMarkerButtons();
 	projectCombo->setEnabled(true);
 	if (!success) {
 		setStatus(tr("Recording failed; Polden did not process a file."));
@@ -249,34 +262,16 @@ void PoldenPanel::recordingStopped(const QString &path, bool success)
 		job.recordedDate = recordingStartedAt.toString(QStringLiteral("yyyy-MM-dd"));
 		job.recordedTimestamp = recordingStartedAt.toString(QStringLiteral("yyyy-MM-dd-HH-mm-ss"));
 		job.targetLevel = recordingAutomation;
-		QString fileName = expand(recordingSettingsSnapshot.filenameTemplate, project->root,
-					  project->footageDirectory, recordingSettingsSnapshot.operatorName,
-					  recordingStartedAt);
-		fileName = QFileInfo(fileName).fileName();
-		if (segmentCount > 1) {
-			QString suffix = QStringLiteral("-seg%1").arg(index + 1, 2, 10, QLatin1Char('0'));
-			fileName = QFileInfo(fileName).completeBaseName() + suffix + QStringLiteral(".mp4");
-		}
+		const QString fileName = QFileInfo(source).completeBaseName() + QStringLiteral(".mp4");
 		QString destinationDirectory = expand(recordingSettingsSnapshot.directoryTemplate, project->root,
 						      project->footageDirectory, recordingSettingsSnapshot.operatorName,
 						      recordingStartedAt);
-		const QString originalName = QFileInfo(fileName).completeBaseName();
-		const QString extension = QFileInfo(fileName).suffix();
-		for (int collision = 2;; ++collision) {
-			const QString candidate = QDir(destinationDirectory).filePath(fileName);
-			const bool usedByJob = std::any_of(jobs.cbegin(), jobs.cend(), [&candidate](const Job &other) {
-				return other.destinationPath.compare(candidate, Qt::CaseInsensitive) == 0;
-			});
-			if (!usedByJob && !QFileInfo::exists(candidate)) {
-				break;
-			}
-			fileName = originalName + QStringLiteral("-%1").arg(collision, 2, 10, QLatin1Char('0')) +
-				   QStringLiteral(".") + extension;
-		}
 		job.fileName = fileName;
 		job.destinationPath = QDir(destinationDirectory).filePath(fileName);
-		job.localPath = QDir(QFileInfo(source).absolutePath())
-					.filePath(QStringLiteral("Polden Converted/%1/%2").arg(project->id, fileName));
+		job.localPath =
+			QDir(QFileInfo(source).absolutePath())
+				.filePath(
+					QStringLiteral("Polden Converted/%1/%2/%3").arg(project->id, job.id, fileName));
 		jobs.append(job);
 	}
 	saveJobs();
@@ -323,8 +318,10 @@ void PoldenPanel::startConversion(Job &job)
 		return;
 	}
 	if (QFileInfo(job.localPath).isFile() && QFileInfo(job.localPath).size() > 0) {
-		job.converted = true;
+		job.error = copyRecordingSidecars(job.sourcePath, job.localPath, id);
+		job.converted = job.error.isEmpty();
 		saveJobs();
+		refresh();
 		QTimer::singleShot(0, this, [this]() { pump(); });
 		return;
 	}
@@ -350,8 +347,11 @@ void PoldenPanel::startConversion(Job &job)
 		if (Job *item = jobById(id)) {
 			if (exitCode == 0 && QFileInfo(temporary).size() > 0 &&
 			    QFile::rename(temporary, item->localPath)) {
-				item->converted = true;
-				setStatus(tr("Converted %1.").arg(item->fileName));
+				item->error = copyRecordingSidecars(item->sourcePath, item->localPath, id);
+				item->converted = item->error.isEmpty();
+				if (item->converted) {
+					setStatus(tr("Converted %1.").arg(item->fileName));
+				}
 			} else {
 				item->error =
 					tr("FFmpeg conversion failed: %1").arg(error.isEmpty() ? temporary : error);
@@ -387,8 +387,7 @@ void PoldenPanel::startCopy(Job &job)
 	const QString original = job.sourcePath;
 	auto result = std::make_shared<QString>();
 	setStatus(tr("Copying %1 to LucidLink…").arg(job.fileName));
-	QThread *thread =
-		QThread::create([=]() { *result = copyVideoAndInfoWriter(source, destination, original, id); });
+	QThread *thread = QThread::create([=]() { *result = copyVideoAndMarkers(source, destination, original, id); });
 	connect(thread, &QThread::finished, this, [this, id, result, thread]() {
 		copying = false;
 		thread->deleteLater();

@@ -38,13 +38,13 @@ def main() -> None:
     parser.add_argument(
         "--include-local-settings",
         action="store_true",
-        help="Include the imported personal OBS profile, scenes, and InfoWriter plugin",
+        help="Include the personal OBS profile, scenes, Polden projects, and marker shortcuts",
     )
     parser.add_argument("--build-dir", default="build_polden_next", help="Build directory containing rundir/Release")
     parser.add_argument(
         "--personal-source",
         default="latest",
-        help="Existing portable runtime containing the OBS profile and InfoWriter",
+        help="Existing portable runtime containing the OBS and Polden settings",
     )
     args = parser.parse_args()
     source = ROOT / args.build_dir / "rundir" / "Release"
@@ -73,7 +73,7 @@ def main() -> None:
                 "portable_mode.txt", "COPYING"
             }:
                 continue
-            if relative.as_posix() == "obs-plugins/64bit/OBSInfoWriter.dll":
+            if relative.name.casefold() == "obsinfowriter.dll":
                 continue
             if relative.as_posix() == "COPYING":
                 continue
@@ -88,7 +88,8 @@ def main() -> None:
         manifest = {"schema": 1, "version": VERSION, "files": files}
         archive.writestr("Polden OBS/polden-install.json", json.dumps(manifest, indent=2) + "\n")
         if args.include_local_settings:
-            for relative in sorted(local_config | {"obs-plugins/64bit/OBSInfoWriter.dll"}):
+            polden_settings = {f"config/obs-studio/{name}" for name in ("polden.json", "polden-markers.json")}
+            for relative in sorted(local_config | polden_settings):
                 path = personal / relative
                 if path.is_file():
                     archive.write(path, Path("Polden OBS") / relative)
