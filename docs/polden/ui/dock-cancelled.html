@@ -1,0 +1,98 @@
+<!doctype html>
+<!-- Polden UI redesign screen. Source: Polden canvas artboard Final-Dock-Cancelled. Size 420x410. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polden dock — processing cancelled</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#272a33;--bar:#1d1f26;--surface:#1d1f26;--control:#3c404b;--line:#3c404b;--line-soft:#33363f;--text:#ffffff;--text-2:#b9bdc6;--text-3:#9a9fab;--accent:#3a57c9;--accent-line:#5a7be0;--ok:#72c89a;--warn:#e8b04b;--rec:#f0555b;--danger:#ff8a8a;--danger-fill:#c4343d}
+body{margin:0}
+a{color:#8fb1ff}a:hover{color:#c0d2ff}
+button,input{font-family:inherit}
+.ui{box-sizing:border-box;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Open Sans','Segoe UI',sans-serif;font-size:13px;border:1px solid var(--line)}
+.ui *{box-sizing:border-box}
+.titlebar{height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 12px;background:var(--bar);font-weight:700}
+.titlebar button{width:22px;height:22px;padding:0;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:#c8ccd4}
+.body{flex:1;display:flex;flex-direction:column;gap:14px;padding:12px 12px 8px}
+.row{display:flex;gap:8px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:6px}
+.between{display:flex;justify-content:space-between;align-items:center}
+.label{font-size:12px;color:var(--text-3)}
+.combo{flex:1;height:32px;display:flex;align-items:center;padding:0 0 0 10px;background:var(--control);border:0;border-radius:4px;color:var(--text);font-size:13px;font-weight:600;text-align:left}
+.combo .t{flex:1}
+.combo .a{width:28px;display:flex;justify-content:center}
+.icon-btn{width:32px;height:32px;flex-shrink:0;padding:0;display:flex;align-items:center;justify-content:center;background:var(--control);border:0;border-radius:4px;color:#d5d8de}
+.icon-btn.ghost{width:26px;height:26px;background:transparent;color:var(--text-3)}
+.seg{display:flex;gap:3px;padding:3px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.seg button{flex:1;height:28px;background:transparent;border:0;border-radius:4px;color:var(--text-2);font-size:13px}
+.seg button[aria-checked="true"]{background:var(--accent);color:#fff;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips.off{opacity:.45}
+.chip{height:32px;min-width:48px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;background:var(--control);border:0;border-radius:4px;color:#fff;font-size:13px;font-weight:600}
+.dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.card{display:flex;flex-direction:column;gap:10px;padding:12px;background:var(--surface);border:1px solid var(--line-soft);border-radius:6px}
+.card-head{display:flex;gap:10px;align-items:flex-start}
+.card-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.title{font-weight:600}
+.file{font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{font-size:12px;color:var(--text-3)}
+.actions{display:flex;gap:8px}
+.btn{flex:1;height:30px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 14px;background:var(--control);border:0;border-radius:4px;color:#fff;font-size:13px}
+.footer{display:flex;align-items:center;gap:6px;height:26px}
+.spacer{flex:1}
+</style>
+<style>html,body{background:#16171c}</style>
+</head>
+<body>
+<div class="ui" style="width: 420px; height: 410px">
+  <div class="titlebar"><span>Polden</span><button aria-label="Float dock"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="1" y="4" width="7" height="7"></rect><path d="M4 4V1h7v7H8"></path></svg></button></div>
+  <div class="body">
+    <div class="row">
+      <button class="combo" aria-label="Game"><span class="t">Iron Frontier</span><span class="a"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3h8L5 7.5z" fill="#ffffff"></path></svg></span></button>
+      <button class="icon-btn" aria-label="Polden settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
+    </div>
+    <div class="stack">
+      <span class="label">After recording</span>
+      <div class="seg" role="radiogroup" aria-label="After recording">
+        <button role="radio" aria-checked="false">Keep file</button>
+        <button role="radio" aria-checked="false">Convert MP4</button>
+        <button role="radio" aria-checked="true">MP4 → Lucid</button>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="between"><span class="label">Markers</span><span class="label">Available while recording</span></div>
+      <div class="chips off">
+        <button class="chip" disabled="disabled" aria-label="Marker 1 · Green"><span class="dot" style="background: #718637"></span>1</button>
+        <button class="chip" disabled="disabled" aria-label="Marker 2 · Red"><span class="dot" style="background: #d22c36"></span>2</button>
+        <button class="chip" disabled="disabled" aria-label="Marker 3 · Purple"><span class="dot" style="background: #af8bb1"></span>3</button>
+        <button class="chip" disabled="disabled" aria-label="Marker 4 · Orange"><span class="dot" style="background: #e96f24"></span>4</button>
+        <button class="chip" disabled="disabled" aria-label="Marker 5 · Yellow"><span class="dot" style="background: #d0a12b"></span>5</button>
+        <button class="chip" disabled="disabled" aria-label="Marker 8 · Cyan"><span class="dot" style="background: #19f4d6"></span>8</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8b04b" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 8.5l7 7"></path></svg>
+        <div class="card-text">
+          <span class="title">Processing cancelled</span>
+          <span class="file">Vasiliy_2026-11-06-14-32-08.mkv</span>
+          <span class="meta">Stopped before MP4. Original recording kept.</span>
+        </div>
+        <button class="icon-btn ghost" aria-label="Delete last take…" title="Delete last take…"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"></path></svg></button>
+      </div>
+      <div class="actions">
+        <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Open folder</button>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="footer">
+      <span class="spacer label">Polden 0.2.2</span>
+      <button class="icon-btn ghost" aria-label="Report a bug"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9adb4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 3 2 3m6-3-2 3M9 10V8a3 3 0 0 1 6 0v2M6 10h12M5 7l3 3m11-3-3 3M3 14h4m10 0h4M5 21l3-4m11 4-3-4"></path><rect x="7" y="10" width="10" height="11" rx="5"></rect><path d="M12 10v11"></path></svg></button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

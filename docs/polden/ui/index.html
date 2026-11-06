@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polden UI — экраны</title>
+<style>
+:root{--bg:#16171c;--card:#1d1f26;--line:#33363f;--text:#ffffff;--text-2:#b9bdc6;--link:#8fb1ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Open Sans','Segoe UI',sans-serif;font-size:14px;line-height:1.5}
+main{max-width:1320px;margin:0 auto;padding:32px 16px 64px}
+h1{margin:0 0 4px;font-size:24px}
+h2{margin:36px 0 12px;font-size:17px}
+p{margin:0;color:var(--text-2)}
+a{color:var(--link)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-items:start}
+figure{margin:0;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+figure img{display:block;width:100%;height:auto;border-radius:4px}
+figcaption{margin-top:8px;color:var(--text-2);font-size:13px}
+figcaption a{font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <h1>Polden UI — вариант A</h1>
+  <p>Утверждённый дизайн дока и диалогов. Описание и правила — в <a href="../ui-redesign.md">ui-redesign.md</a>. Клик по названию открывает HTML-макет.</p>
+
+  <h2>Док</h2>
+  <div class="grid">
+    <figure><img src="png/dock-ready.png" alt="Док: дубль скопирован на LucidLink"><figcaption><a href="dock-ready.html">Готово</a> — дубль на LucidLink, Open folder и корзина.</figcaption></figure>
+    <figure><img src="png/dock-recording-busy.png" alt="Док: новая запись, прошлый дубль копируется"><figcaption><a href="dock-recording-busy.html">Запись + обработка</a> — маркеры активны, прошлый дубль строкой.</figcaption></figure>
+    <figure><img src="png/dock-processing.png" alt="Док: копирование на LucidLink"><figcaption><a href="dock-processing.html">Обработка</a> — процент, очередь, Cancel; плашка обновления.</figcaption></figure>
+    <figure><img src="png/dock-cancelled.png" alt="Док: обработка отменена"><figcaption><a href="dock-cancelled.html">Отменено</a> — без Resume, с корзиной.</figcaption></figure>
+    <figure><img src="png/dock-game-menu.png" alt="Док: меню игр"><figcaption><a href="dock-game-menu.html">Меню игр</a> — Add, Edit, Open video folder.</figcaption></figure>
+    <figure><img src="png/dock-empty.png" alt="Док: нет игр"><figcaption><a href="dock-empty.html">Нет игр</a> — приглашение добавить игру.</figcaption></figure>
+  </div>
+
+  <h2>Диалоги</h2>
+  <div class="grid">
+    <figure><img src="png/delete-last-take.png" alt="Подтверждение удаления последнего дубля"><figcaption><a href="delete-last-take.html">Удалить последний дубль</a> — список файлов, по умолчанию Cancel.</figcaption></figure>
+    <figure><img src="png/game-dialog.png" alt="Диалог игры"><figcaption><a href="game-dialog.html">Игра</a> — папка игры, автозаполнение, окно захвата.</figcaption></figure>
+    <figure><img src="png/settings-files.png" alt="Настройки: Files с раскрытым Advanced"><figcaption><a href="settings-files.html">Settings · Files</a> — шаблоны и Advanced.</figcaption></figure>
+    <figure><img src="png/settings-markers.png" alt="Настройки: Markers"><figcaption><a href="settings-markers.html">Settings · Markers</a> — кнопки дока и шорткаты.</figcaption></figure>
+  </div>
+</main>
+</body>
+</html>

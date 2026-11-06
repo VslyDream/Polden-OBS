@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- Polden UI redesign screen. Source: Polden canvas artboard Final-Dock-Menu. Size 420x410. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polden dock — game menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#272a33;--bar:#1d1f26;--surface:#1d1f26;--control:#3c404b;--line:#3c404b;--line-soft:#33363f;--text:#ffffff;--text-2:#b9bdc6;--text-3:#9a9fab;--accent:#3a57c9;--accent-line:#5a7be0;--ok:#72c89a;--warn:#e8b04b;--rec:#f0555b;--danger:#ff8a8a;--danger-fill:#c4343d}
+body{margin:0}
+a{color:#8fb1ff}a:hover{color:#c0d2ff}
+button,input{font-family:inherit}
+.ui{box-sizing:border-box;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Open Sans','Segoe UI',sans-serif;font-size:13px;border:1px solid var(--line)}
+.ui *{box-sizing:border-box}
+.titlebar{height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 12px;background:var(--bar);font-weight:700}
+.titlebar button{width:22px;height:22px;padding:0;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:#c8ccd4}
+.body{flex:1;display:flex;flex-direction:column;gap:14px;padding:12px 12px 8px}
+.row{display:flex;gap:8px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:6px}
+.label{font-size:12px;color:var(--text-3)}
+.combo{flex:1;height:32px;display:flex;align-items:center;padding:0 0 0 10px;background:var(--control);border:1px solid var(--accent-line);border-radius:4px;color:var(--text);font-size:13px;font-weight:600;text-align:left}
+.combo .t{flex:1}
+.combo .a{width:28px;display:flex;justify-content:center}
+.icon-btn{width:32px;height:32px;flex-shrink:0;padding:0;display:flex;align-items:center;justify-content:center;background:var(--control);border:0;border-radius:4px;color:#d5d8de}
+.seg{display:flex;gap:3px;padding:3px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.seg button{flex:1;height:28px;background:transparent;border:0;border-radius:4px;color:var(--text-2);font-size:13px}
+.seg button[aria-checked="true"]{background:var(--accent);color:#fff;font-weight:600}
+.menu{position:absolute;top:78px;left:12px;width:356px;display:flex;flex-direction:column;padding:4px;background:var(--surface);border:1px solid #44495a;border-radius:6px;box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.menu .head{padding:6px 10px 4px;font-size:12px;color:var(--text-3)}
+.menu button{height:34px;display:flex;align-items:center;gap:10px;padding:0 10px;background:transparent;border:0;border-radius:4px;color:#fff;font-size:13px;text-align:left}
+.menu button[aria-checked="true"]{background:var(--accent)}
+.menu .grow{flex:1}
+.menu .sub{font-size:12px;color:var(--text-3)}
+.menu button[aria-checked="true"] .sub{color:#dfe5ff}
+.menu .sep{height:1px;margin:4px 6px;background:var(--line)}
+.menu .ic{width:14px;display:flex;justify-content:center;color:var(--text-2)}
+.spacer{flex:1}
+</style>
+<style>html,body{background:#16171c}</style>
+</head>
+<body>
+<div class="ui" style="position: relative; width: 420px; height: 410px">
+  <div class="titlebar"><span>Polden</span><button aria-label="Float dock"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="1" y="4" width="7" height="7"></rect><path d="M4 4V1h7v7H8"></path></svg></button></div>
+  <div class="body">
+    <div class="row">
+      <button class="combo" aria-label="Game" aria-expanded="true"><span class="t">Iron Frontier</span><span class="a"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 7h8L5 2.5z" fill="#ffffff"></path></svg></span></button>
+      <button class="icon-btn" aria-label="Polden settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
+    </div>
+    <div class="stack">
+      <span class="label">After recording</span>
+      <div class="seg" role="radiogroup" aria-label="After recording">
+        <button role="radio" aria-checked="false">Keep file</button>
+        <button role="radio" aria-checked="false">Convert MP4</button>
+        <button role="radio" aria-checked="true">MP4 → Lucid</button>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+  <div class="menu" role="menu" aria-label="Games">
+    <span class="head">Games</span>
+    <button role="menuitemradio" aria-checked="true"><span class="ic" style="color: #ffffff"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span><span class="grow" style="font-weight: 600">Iron Frontier</span><span class="sub">MP4 → Lucid</span></button>
+    <button role="menuitemradio" aria-checked="false"><span class="ic"></span><span class="grow">Meowgic</span><span class="sub">Convert MP4</span></button>
+    <div class="sep"></div>
+    <button role="menuitem"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>Add game…</button>
+    <button role="menuitem"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></span>Edit “Iron Frontier”…</button>
+    <button role="menuitem"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>Open video folder</button>
+  </div>
+</div>
+</body>
+</html>

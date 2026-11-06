@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- Polden UI redesign screen. Source: Polden canvas artboard Final-Settings-Markers. Size 640x540. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polden settings — Markers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#272a33;--bar:#1d1f26;--surface:#1d1f26;--control:#3c404b;--line:#3c404b;--line-soft:#33363f;--text:#ffffff;--text-2:#b9bdc6;--text-3:#9a9fab;--accent:#3a57c9;--accent-line:#5a7be0;--ok:#72c89a;--warn:#e8b04b;--rec:#f0555b;--danger:#ff8a8a;--danger-fill:#c4343d}
+body{margin:0}
+a{color:#8fb1ff}a:hover{color:#c0d2ff}
+button,input{font-family:inherit}
+.ui{box-sizing:border-box;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Open Sans','Segoe UI',sans-serif;font-size:13px;border:1px solid #44495a;box-shadow:0 12px 32px rgba(0,0,0,.45)}
+.ui *{box-sizing:border-box}
+.win{height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding-left:12px;background:var(--bar);font-size:12px;color:#e4e6ea}
+.win button{width:46px;height:32px;display:flex;align-items:center;justify-content:center;padding:0;background:transparent;border:0;color:#e4e6ea}
+.dlg{flex:1;display:flex;flex-direction:column;gap:16px;padding:14px 18px 16px}
+.tabs{display:flex;gap:3px;padding:3px;align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.tabs button{height:28px;padding:0 16px;background:transparent;border:0;border-radius:4px;color:var(--text-2);font-size:13px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:#fff;font-weight:600}
+.stack{display:flex;flex-direction:column;gap:8px}
+.between{display:flex;justify-content:space-between;align-items:baseline}
+.strong{font-weight:600}
+.label{font-size:12px;color:var(--text-3)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{height:32px;min-width:52px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;background:var(--control);border:1px solid var(--accent-line);border-radius:4px;color:#fff;font-size:13px;font-weight:600}
+.chip[aria-pressed="false"]{background:transparent;border:1px dashed #5a5f6d;color:var(--text-3)}
+.chip[aria-pressed="false"] .dot{opacity:.5}
+.dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.keys{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,auto);grid-auto-flow:column;column-gap:16px;row-gap:6px}
+.key{display:flex;align-items:center;gap:8px}
+.key .name{width:72px;flex-shrink:0}
+.kf{flex:1;min-width:0;height:32px;display:flex;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:4px}
+.kf input{flex:1;min-width:0;height:30px;padding:0 8px;background:transparent;border:0;color:#fff;font-size:13px}
+.kf input::placeholder{color:var(--text-3)}
+.kf button{width:28px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--text-3)}
+.note{margin:0;font-size:12px;line-height:18px;color:var(--text-3)}
+.btn{height:30px;min-width:86px;display:flex;align-items:center;justify-content:center;padding:0 14px;background:var(--control);border:0;border-radius:4px;color:#fff;font-size:13px}
+.btn.primary{background:var(--accent);font-weight:600}
+.end{display:flex;justify-content:flex-end;gap:8px}
+.spacer{flex:1}
+</style>
+<style>html,body{background:#16171c}</style>
+</head>
+<body>
+<div class="ui" style="width: 640px; height: 540px">
+  <div class="win"><span>Polden settings</span><button aria-label="Close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9"></path></svg></button></div>
+  <div class="dlg">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="false">Files</button>
+      <button role="tab" aria-selected="true">Markers</button>
+    </div>
+
+    <div class="stack">
+      <div class="between"><span class="strong">Buttons on the dock</span><span class="label">Click a color to show or hide it</span></div>
+      <div class="chips">
+        <button class="chip" aria-pressed="true" aria-label="1 · Green, shown on dock"><span class="dot" style="background: #718637"></span>1</button>
+        <button class="chip" aria-pressed="true" aria-label="2 · Red, shown on dock"><span class="dot" style="background: #d22c36"></span>2</button>
+        <button class="chip" aria-pressed="true" aria-label="3 · Purple, shown on dock"><span class="dot" style="background: #af8bb1"></span>3</button>
+        <button class="chip" aria-pressed="true" aria-label="4 · Orange, shown on dock"><span class="dot" style="background: #e96f24"></span>4</button>
+        <button class="chip" aria-pressed="true" aria-label="5 · Yellow, shown on dock"><span class="dot" style="background: #d0a12b"></span>5</button>
+        <button class="chip" aria-pressed="false" aria-label="6 · White, hidden"><span class="dot" style="background: #ffffff"></span>6</button>
+        <button class="chip" aria-pressed="false" aria-label="7 · Blue, hidden"><span class="dot" style="background: #482dfc"></span>7</button>
+        <button class="chip" aria-pressed="true" aria-label="8 · Cyan, shown on dock"><span class="dot" style="background: #19f4d6"></span>8</button>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="between"><span class="strong">Shortcuts</span><span class="label">Click a field, then press keys</span></div>
+      <div class="keys">
+        <div class="key"><span class="dot" style="background: #718637"></span><span class="name">Green</span><div class="kf"><input aria-label="Green shortcut" value="Ctrl + Shift + 1"><button aria-label="Clear Green shortcut"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+        <div class="key"><span class="dot" style="background: #d22c36"></span><span class="name">Red</span><div class="kf"><input aria-label="Red shortcut" value="Ctrl + Shift + 2"><button aria-label="Clear Red shortcut"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+        <div class="key"><span class="dot" style="background: #af8bb1"></span><span class="name">Purple</span><div class="kf"><input aria-label="Purple shortcut" value="Ctrl + Shift + 3"><button aria-label="Clear Purple shortcut"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+        <div class="key"><span class="dot" style="background: #e96f24"></span><span class="name">Orange</span><div class="kf"><input aria-label="Orange shortcut" value="Ctrl + Shift + 4"><button aria-label="Clear Orange shortcut"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+        <div class="key"><span class="dot" style="background: #d0a12b"></span><span class="name">Yellow</span><div class="kf"><input aria-label="Yellow shortcut" value="Ctrl + Shift + 5"><button aria-label="Clear Yellow shortcut"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+        <div class="key"><span class="dot" style="background: #ffffff"></span><span class="name">White</span><div class="kf"><input aria-label="White shortcut" placeholder="Not set"></div></div>
+        <div class="key"><span class="dot" style="background: #482dfc"></span><span class="name">Blue</span><div class="kf"><input aria-label="Blue shortcut" placeholder="Not set"></div></div>
+        <div class="key"><span class="dot" style="background: #19f4d6"></span><span class="name">Cyan</span><div class="kf"><input aria-label="Cyan shortcut" value="Ctrl + Shift + 8"><button aria-label="Clear Cyan shortcut"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+      </div>
+    </div>
+
+    <p class="note">Markers are saved as <span style="color: #d5d8de">H:MM:SS,color</span> to a .txt next to the recording and travel with the MP4. Shortcuts also appear in OBS Settings → Hotkeys.</p>
+
+    <div class="spacer"></div>
+    <div class="end">
+      <button class="btn">Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

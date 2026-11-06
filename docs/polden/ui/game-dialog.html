@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- Polden UI redesign screen. Source: Polden canvas artboard Final-Game. Size 560x500. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit game dialog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#272a33;--bar:#1d1f26;--surface:#1d1f26;--control:#3c404b;--line:#3c404b;--line-soft:#33363f;--text:#ffffff;--text-2:#b9bdc6;--text-3:#9a9fab;--accent:#3a57c9;--accent-line:#5a7be0;--ok:#72c89a;--warn:#e8b04b;--rec:#f0555b;--danger:#ff8a8a;--danger-fill:#c4343d}
+body{margin:0}
+a{color:#8fb1ff}a:hover{color:#c0d2ff}
+button,input{font-family:inherit}
+.ui{box-sizing:border-box;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Open Sans','Segoe UI',sans-serif;font-size:13px;border:1px solid #44495a;box-shadow:0 12px 32px rgba(0,0,0,.45)}
+.ui *{box-sizing:border-box}
+.win{height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding-left:12px;background:var(--bar);font-size:12px;color:#e4e6ea}
+.win button{width:46px;height:32px;display:flex;align-items:center;justify-content:center;padding:0;background:transparent;border:0;color:#e4e6ea}
+.dlg{flex:1;display:flex;flex-direction:column;gap:18px;padding:18px 18px 16px}
+.stack{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:6px}
+.strong{font-weight:600}
+.field{height:32px;padding:0 10px;background:var(--surface);border:1px solid var(--line);border-radius:4px;color:#fff;font-size:13px;min-width:0}
+.grow{flex:1}
+.hint{font-size:12px;color:var(--text-3);line-height:17px}
+.form{display:grid;grid-template-columns:110px minmax(0,1fr);column-gap:12px;row-gap:8px;align-items:center}
+.form label{color:var(--text-2)}
+.btn{height:32px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 14px;background:var(--control);border:0;border-radius:4px;color:#fff;font-size:13px}
+.btn.sm{height:30px;min-width:86px}
+.btn.primary{background:var(--accent);font-weight:600}
+.btn.link-danger{background:transparent;color:var(--danger);padding:0 4px}
+.icon-btn{width:32px;height:32px;flex-shrink:0;padding:0;display:flex;align-items:center;justify-content:center;background:var(--control);border:0;border-radius:4px;color:#d5d8de}
+.sep{height:1px;background:var(--line)}
+.window-pick{height:42px;display:flex;align-items:center;gap:10px;padding:0 0 0 10px;background:var(--control);border:0;border-radius:4px;color:#fff;font-size:13px;text-align:left}
+.app{width:22px;height:22px;border-radius:4px;background:#555a68;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.two{flex:1;display:flex;flex-direction:column}
+.two small{font-size:12px;color:#c3c7cf}
+.end{display:flex;align-items:center;gap:8px}
+.spacer{flex:1}
+</style>
+<style>html,body{background:#16171c}</style>
+</head>
+<body>
+<div class="ui" style="width: 560px; height: 500px">
+  <div class="win"><span>Edit game — Iron Frontier</span><button aria-label="Close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9"></path></svg></button></div>
+  <div class="dlg">
+    <div class="stack">
+      <label for="fg-root" class="strong">Game folder on LucidLink</label>
+      <div class="row">
+        <input id="fg-root" class="field grow" value="L:\Iron Frontier">
+        <button class="btn" style="width: 90px">Browse…</button>
+      </div>
+      <span class="hint">Name and video folder are filled in from this folder.</span>
+    </div>
+    <div class="form">
+      <label for="fg-name">Name</label>
+      <input id="fg-name" class="field" value="Iron Frontier">
+      <label for="fg-video">Video folder</label>
+      <div class="row">
+        <input id="fg-video" class="field grow" value="L:\Iron Frontier\02_Assets\01_VIDEO">
+        <button class="icon-btn" aria-label="Detect video folder again" title="Detect again"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg></button>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="stack">
+      <span class="strong">Game window</span>
+      <button class="window-pick" aria-label="Game window">
+        <span class="app">IF</span>
+        <span class="two"><span class="strong">Iron Frontier</span><small>IronFrontier.exe</small></span>
+        <span style="width: 32px; display: flex; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3h8L5 7.5z" fill="#ffffff"></path></svg></span>
+      </button>
+      <span class="hint">When you pick this game in the dock, Game Capture switches to this window.</span>
+      <span class="hint">Source: Game Capture · <a href="#source">change</a></span>
+    </div>
+    <div class="spacer"></div>
+    <div class="end">
+      <button class="btn link-danger">Delete game…</button>
+      <span class="spacer"></span>
+      <button class="btn sm">Cancel</button>
+      <button class="btn sm primary">Save</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

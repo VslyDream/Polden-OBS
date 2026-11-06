@@ -1,0 +1,119 @@
+<!doctype html>
+<!-- Polden UI redesign screen. Source: Polden canvas artboard Final-Settings-Files. Size 640x860. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polden settings — Files with Advanced</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#272a33;--bar:#1d1f26;--surface:#1d1f26;--control:#3c404b;--line:#3c404b;--line-soft:#33363f;--text:#ffffff;--text-2:#b9bdc6;--text-3:#9a9fab;--accent:#3a57c9;--accent-line:#5a7be0;--ok:#72c89a;--warn:#e8b04b;--rec:#f0555b;--danger:#ff8a8a;--danger-fill:#c4343d}
+body{margin:0}
+a{color:#8fb1ff}a:hover{color:#c0d2ff}
+button,input{font-family:inherit}
+.ui{box-sizing:border-box;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Open Sans','Segoe UI',sans-serif;font-size:13px;border:1px solid #44495a;box-shadow:0 12px 32px rgba(0,0,0,.45)}
+.ui *{box-sizing:border-box}
+.win{height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding-left:12px;background:var(--bar);font-size:12px;color:#e4e6ea}
+.win button{width:46px;height:32px;display:flex;align-items:center;justify-content:center;padding:0;background:transparent;border:0;color:#e4e6ea}
+.dlg{flex:1;display:flex;flex-direction:column;gap:16px;padding:14px 18px 16px}
+.tabs{display:flex;gap:3px;padding:3px;align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.tabs button{height:28px;padding:0 16px;background:transparent;border:0;border-radius:4px;color:var(--text-2);font-size:13px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:#fff;font-weight:600}
+.form{display:grid;grid-template-columns:130px minmax(0,1fr);column-gap:12px;row-gap:6px;align-items:center}
+.form label{color:var(--text-2)}
+.form .gap{margin-top:10px}
+.field{height:32px;padding:0 10px;background:var(--surface);border:1px solid var(--line);border-radius:4px;color:#fff;font-size:13px;min-width:0}
+.mono{font-family:'JetBrains Mono',Consolas,monospace}
+.tokens{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.token{height:24px;padding:0 10px;background:var(--control);border:0;border-radius:12px;color:#fff;font-size:12px}
+.label{font-size:12px;color:var(--text-3)}
+.preview{display:flex;flex-direction:column;gap:6px;padding:12px 14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:6px}
+.path{font-family:'JetBrains Mono',Consolas,monospace;font-size:12px;line-height:19px;word-break:break-all}
+.adv-toggle{height:30px;display:flex;align-items:center;gap:8px;padding:0;background:transparent;border:0;color:#fff;font-size:13px;font-weight:600;text-align:left}
+.adv{display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid var(--line);border-radius:6px}
+.adv h2{margin:0;font-size:13px;font-weight:600}
+.hint{margin:0;font-size:12px;color:var(--text-3);line-height:17px}
+.row{display:flex;gap:6px}
+.grow{flex:1}
+.btn{height:32px;display:flex;align-items:center;justify-content:center;padding:0 14px;background:var(--control);border:0;border-radius:4px;color:#fff;font-size:13px}
+.btn.sm{height:30px;min-width:86px}
+.btn.primary{background:var(--accent);font-weight:600}
+.btn.link{height:24px;padding:0;background:transparent;color:#8fb1ff;font-size:12px}
+.sep{height:1px;background:var(--line-soft)}
+.end{display:flex;justify-content:flex-end;gap:8px}
+.spacer{flex:1}
+</style>
+<style>html,body{background:#16171c}</style>
+</head>
+<body>
+<div class="ui" style="width: 640px; height: 860px">
+  <div class="win"><span>Polden settings</span><button aria-label="Close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9"></path></svg></button></div>
+  <div class="dlg">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true">Files</button>
+      <button role="tab" aria-selected="false">Markers</button>
+    </div>
+
+    <div class="form">
+      <label for="fs-name">Your name</label>
+      <input id="fs-name" class="field" value="Vasiliy">
+
+      <label for="fs-file" class="gap">File name</label>
+      <input id="fs-file" class="field mono gap" value="{name}_{date}-{time}">
+      <span></span>
+      <div class="tokens"><span class="label">Insert</span><button class="token">Name</button><button class="token">Date</button><button class="token">Time</button><button class="token">Game</button></div>
+
+      <label for="fs-folder" class="gap">Folder on LucidLink</label>
+      <input id="fs-folder" class="field mono gap" value="{video folder}\{date}">
+      <span></span>
+      <div class="tokens"><span class="label">Insert</span><button class="token">Video folder</button><button class="token">Game folder</button><button class="token">Date</button><button class="token">Name</button></div>
+    </div>
+
+    <div class="preview">
+      <span class="label">Next recording on LucidLink</span>
+      <span class="path"><span style="color: #9a9fab">L:\Iron Frontier\02_Assets\01_VIDEO\2026-11-06\</span><span style="font-weight: 600">Vasiliy_2026-11-06-14-32-08.mp4</span></span>
+      <span class="label">Markers go next to it as Vasiliy_2026-11-06-14-32-08.txt</span>
+    </div>
+
+    <button class="adv-toggle" aria-expanded="true">
+      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3h8L5 7.5z" fill="#b9bdc6"></path></svg>
+      Advanced
+    </button>
+    <div class="adv">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2>Game folder layout</h2>
+        <button class="btn link">Reset to defaults</button>
+      </div>
+      <p class="hint">Used when you pick a game folder or press ↺ in the game dialog. Existing games keep their paths. Change only if the LucidLink layout changes.</p>
+      <div class="form">
+        <label for="fs-sub">Video folder</label>
+        <input id="fs-sub" class="field mono" value="02_Assets\01_VIDEO">
+        <span></span>
+        <span class="hint">Inside the game folder. Default: 02_Assets\01_VIDEO</span>
+        <label for="fs-gname" class="gap">Game name</label>
+        <input id="fs-gname" class="field mono gap" value="{folder}">
+        <span></span>
+        <span class="hint">{folder} = name of the chosen game folder</span>
+      </div>
+      <div class="sep"></div>
+      <div class="form">
+        <label for="fs-ffmpeg">FFmpeg</label>
+        <div class="row">
+          <input id="fs-ffmpeg" class="field grow" value="C:\ffmpeg\bin\ffmpeg.exe">
+          <button class="btn" style="width: 90px">Browse…</button>
+        </div>
+        <span></span>
+        <span class="hint">Found automatically in PATH.</span>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="end">
+      <button class="btn sm">Cancel</button>
+      <button class="btn sm primary">Save</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

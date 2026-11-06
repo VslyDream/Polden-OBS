@@ -12,6 +12,7 @@
 - [Перенос локального OBS](docs/polden/local-obs-import.md) — профиль записи, коллекция сцен и InfoWriter.
 - [Проекты и пайплайн Polden](docs/polden/project-pipeline.md) — сущность игры, уровни автоматизации, шаблоны и открытые решения.
 - [Встроенные маркеры](docs/polden/markers.md) — цвета, горячие клавиши и формат CSV.
+- [Редизайн интерфейса](docs/polden/ui-redesign.md) — утверждённый, ещё не реализованный вариант дока и диалогов: HTML-макеты и PNG в `docs/polden/ui/`.
 - [MP4 после записи](docs/polden/recording-mp4.md) — поведение OBS, вариант FFmpeg и точки интеграции.
 - [История версий](docs/polden/releases.md) — версии 0.0.1 и 0.1.0.
 - [Релизы и обновление](docs/polden/updating.md) — публикация ZIP, сохранение настроек и резервные копии.

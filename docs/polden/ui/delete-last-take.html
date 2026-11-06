@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- Polden UI redesign screen. Source: Polden canvas artboard Final-Delete-Confirm. Size 480x440. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delete last take confirmation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#272a33;--bar:#1d1f26;--surface:#1d1f26;--control:#3c404b;--line:#3c404b;--line-soft:#33363f;--text:#ffffff;--text-2:#b9bdc6;--text-3:#9a9fab;--accent:#3a57c9;--accent-line:#5a7be0;--ok:#72c89a;--warn:#e8b04b;--rec:#f0555b;--danger:#ff8a8a;--danger-fill:#c4343d}
+body{margin:0}
+a{color:#8fb1ff}a:hover{color:#c0d2ff}
+button,input{font-family:inherit}
+.ui{box-sizing:border-box;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Open Sans','Segoe UI',sans-serif;font-size:13px;border:1px solid #44495a;box-shadow:0 12px 32px rgba(0,0,0,.45)}
+.ui *{box-sizing:border-box}
+.win{height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding-left:12px;background:var(--bar);font-size:12px;color:#e4e6ea}
+.win button{width:46px;height:32px;display:flex;align-items:center;justify-content:center;padding:0;background:transparent;border:0;color:#e4e6ea}
+.dlg{flex:1;display:flex;flex-direction:column;gap:14px;padding:18px}
+.head{display:flex;gap:12px;align-items:flex-start}
+.badge{width:36px;height:36px;flex-shrink:0;border-radius:50%;background:rgba(196,52,61,.18);display:flex;align-items:center;justify-content:center;color:var(--danger)}
+.h{margin:0;font-size:15px;font-weight:700}
+.meta{font-size:12px;color:var(--text-3)}
+.list{display:flex;flex-direction:column;padding:4px 12px;background:var(--surface);border:1px solid var(--line-soft);border-radius:6px}
+.item{display:grid;grid-template-columns:92px minmax(0,1fr);column-gap:10px;padding:7px 0;border-bottom:1px solid var(--line-soft);align-items:baseline}
+.item:last-child{border-bottom:0}
+.item .k{color:var(--text-2)}
+.item .v{font-family:'JetBrains Mono',Consolas,monospace;font-size:11.5px;line-height:17px;color:#e4e6ea;word-break:break-all}
+.note{margin:0;font-size:12px;line-height:17px;color:var(--text-3)}
+.end{display:flex;justify-content:flex-end;gap:8px}
+.btn{min-width:96px;height:30px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 14px;background:var(--control);border:0;border-radius:4px;color:#fff;font-size:13px}
+.btn.focus{outline:2px solid var(--accent-line);outline-offset:2px}
+.btn.danger{background:var(--danger-fill);font-weight:600}
+.spacer{flex:1}
+</style>
+<style>html,body{background:#16171c}</style>
+</head>
+<body>
+<div class="ui" style="width: 480px; height: 440px">
+  <div class="win"><span>Delete last take</span><button aria-label="Close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9"></path></svg></button></div>
+  <div class="dlg">
+    <div class="head">
+      <span class="badge"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"></path></svg></span>
+      <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+        <h1 class="h">Delete the last take?</h1>
+        <span class="meta">Iron Frontier · Vasiliy_2026-11-06-14-32-08 · 0:14:32</span>
+      </div>
+    </div>
+    <div class="list">
+      <div class="item"><span class="k">Recording</span><span class="v">D:\2_Library\Video\2026-11-06\Vasiliy_2026-11-06-14-32-08.mkv</span></div>
+      <div class="item"><span class="k">MP4 (local)</span><span class="v">…\Polden Converted\‹project›\‹job›\Vasiliy_2026-11-06-14-32-08.mp4</span></div>
+      <div class="item"><span class="k">LucidLink</span><span class="v">L:\Iron Frontier\02_Assets\01_VIDEO\2026-11-06\Vasiliy_2026-11-06-14-32-08.mp4</span></div>
+      <div class="item"><span class="k">Markers</span><span class="v">Vasiliy_2026-11-06-14-32-08.txt — 3 copies</span></div>
+    </div>
+    <p class="note">Processing for this take stops first. Local files go to the Recycle Bin; the LucidLink copy is deleted permanently. Other takes are not touched.</p>
+    <div class="spacer"></div>
+    <div class="end">
+      <button class="btn focus">Cancel</button>
+      <button class="btn danger">Delete take</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
