@@ -55,11 +55,11 @@ try {
   try { previousJobs = JSON.parse(await readFile(path.join(config, 'polden-jobs.json'))); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
   const previousIds = new Set(previousJobs.map(job => job.id));
-  const previousCsvCount = (await readdir(path.join(runtime, 'recordings'))).filter(name => name.endsWith('.csv')).length;
+  const previousTxtCount = (await readdir(path.join(runtime, 'recordings'))).filter(name => name.endsWith('.txt')).length;
   for (let color = 0; color < 8; ++color) assert(hotkeys.includes(`Polden.Marker${color}`));
   assert(!hotkeys.some(name => /infowriter/i.test(name)), 'Legacy plugin registered hotkeys');
   await marker(0);
-  assert.equal((await readdir(path.join(runtime, 'recordings'))).filter(name => name.endsWith('.csv')).length, previousCsvCount);
+  assert.equal((await readdir(path.join(runtime, 'recordings'))).filter(name => name.endsWith('.txt')).length, previousTxtCount);
 
   await request('StartRecord');
   await delay(1800);
@@ -95,29 +95,30 @@ try {
     assert.equal(path.basename(job.localPath), `${stem}.mp4`);
     assert.equal(path.basename(job.destinationPath), `${stem}.mp4`);
     assert.equal(job.fileName, `${stem}.mp4`);
-    const original = await readFile(path.join(path.dirname(job.sourcePath), `${stem}.csv`));
+    const original = await readFile(path.join(path.dirname(job.sourcePath), `${stem}.txt`));
     for (const video of [job.localPath, job.destinationPath]) {
-      assert.deepEqual(await readFile(path.join(path.dirname(video), `${stem}.csv`)), original);
+      assert.deepEqual(await readFile(path.join(path.dirname(video), `${stem}.txt`)), original);
     }
     assert.deepEqual(await readFile(job.localPath), await readFile(job.destinationPath));
   }
-  const firstCsv = path.join(path.dirname(first.sourcePath), `${path.parse(first.sourcePath).name}.csv`);
-  const secondCsv = path.join(path.dirname(second.sourcePath), `${path.parse(second.sourcePath).name}.csv`);
-  const firstLines = await lines(firstCsv);
-  assert.deepEqual(firstLines.map(line => Number(line.split(',')[1])), [0, 1, 2, 3, 4, 5, 6, 7, 7]);
+  const firstTxt = path.join(path.dirname(first.sourcePath), `${path.parse(first.sourcePath).name}.txt`);
+  const secondTxt = path.join(path.dirname(second.sourcePath), `${path.parse(second.sourcePath).name}.txt`);
+  const firstLines = await lines(firstTxt);
+  for (const line of firstLines) assert.match(line, /^\d+:[0-5]\d:[0-5]\d,[1-8]$/);
+  assert.deepEqual(firstLines.map(line => Number(line.split(',')[1])), [1, 2, 3, 4, 5, 6, 7, 8, 8]);
   assert(seconds(firstLines[8]) - seconds(firstLines[7]) < 1.3, 'Pause was included in marker time');
-  const secondLines = await lines(secondCsv);
+  const secondLines = await lines(secondTxt);
   assert.equal(secondLines.length, 1);
-  assert.equal(secondLines[0].split(',')[1], '6');
+  assert.equal(secondLines[0].split(',')[1], '7');
   assert(seconds(secondLines[0]) < 3, 'Split did not reset marker time');
   await marker(0);
   await delay(200);
-  assert.deepEqual(await lines(secondCsv), secondLines, 'A marker was added after recording stopped');
+  assert.deepEqual(await lines(secondTxt), secondLines, 'A marker was added after recording stopped');
   const settings = JSON.parse(await readFile(path.join(config, 'polden-markers.json')));
   for (let color = 0; color < 8; ++color) assert.equal(settings[`Polden.Marker${color}`].bindings.length, 1);
   console.log(JSON.stringify({ passed: true, colors: 8, segments: jobs.length,
     checks: ['all color IDs', 'inactive/paused guards', 'pause timing', 'split timing', 'original names',
-      'local CSV', 'Lucid CSV', 'video checksums', 'shortcut persistence', 'legacy plugin exclusion'],
+      'local TXT', 'Lucid TXT', 'video checksums', 'shortcut persistence', 'legacy plugin exclusion'],
     beforePause, firstLines, secondLines }, null, 2));
 } finally {
   ws.close();

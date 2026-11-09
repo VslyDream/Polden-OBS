@@ -1,0 +1,7 @@
+{
+  "rate_control": "CQP",
+  "cqp": 22,
+  "keyint_sec": 2,
+  "multipass": "fullres",
+  "profile": "main10"
+}

@@ -21,6 +21,7 @@
 #include <dialogs/LogUploadDialog.hpp>
 #include <plugin-manager/PluginManager.hpp>
 #include <utility/CrashHandler.hpp>
+#include <utility/PoldenDefaults.hpp>
 #include <utility/OBSEventFilter.hpp>
 #include <utility/OBSProxyStyle.hpp>
 #if defined(_WIN32) || defined(ENABLE_SPARKLE_UPDATER)
@@ -40,6 +41,7 @@
 #include <QDesktopServices>
 #if defined(_WIN32) || defined(ENABLE_SPARKLE_UPDATER)
 #include <QFile>
+#include <QFileInfo>
 #endif
 
 #include <QSessionManager>
@@ -1093,6 +1095,13 @@ void OBSApp::AppInit()
 		throw "Failed to load theme";
 	}
 
+#ifdef _WIN32
+	// OBS materializes default values as user values, so inspect the selection before adding defaults.
+	const bool installPoldenDefaults = !config_has_user_value(userConfig, "Basic", "Profile") &&
+					   !config_has_user_value(userConfig, "Basic", "SceneCollection") &&
+					   !config_get_bool(userConfig, "General", "FirstRun");
+#endif
+
 	config_set_default_string(userConfig, "Basic", "Profile", Str("Untitled"));
 	config_set_default_string(userConfig, "Basic", "ProfileDir", Str("Untitled"));
 	config_set_default_string(userConfig, "Basic", "SceneCollection", Str("Untitled"));
@@ -1130,6 +1139,28 @@ void OBSApp::AppInit()
 
 	move_basic_to_profiles();
 	move_basic_to_scene_collections();
+
+#ifdef _WIN32
+	// Apply the bundled gameplay preset only to a fresh configuration.
+	if (installPoldenDefaults) {
+		std::string presetFile;
+		const auto profiles = userProfilesLocation / std::filesystem::u8path(OBSProfileSubDirectory);
+		const auto scenes = userScenesLocation / std::filesystem::u8path(OBSScenesSubDirectory);
+		if (GetDataFilePath("polden/defaults/basic.ini", presetFile) &&
+		    PoldenDefaults::install(QFileInfo(QString::fromStdString(presetFile)).absolutePath(),
+					    QString::fromStdString(profiles.u8string()),
+					    QString::fromStdString(scenes.u8string()))) {
+			config_set_string(userConfig, "Basic", "Profile", "Polden Gameplay");
+			config_set_string(userConfig, "Basic", "ProfileDir", "PoldenGameplay");
+			config_set_string(userConfig, "Basic", "SceneCollection", "Polden Gameplay");
+			config_set_string(userConfig, "Basic", "SceneCollectionFile", "PoldenGameplay");
+			// Keep the auto-config wizard from replacing the installed recording settings.
+			config_set_bool(userConfig, "General", "FirstRun", true);
+			config_save_safe(userConfig, "tmp", nullptr);
+			blog(LOG_INFO, "Installed Polden Gameplay default profile and scenes (1920x1080, 60 FPS)");
+		}
+	}
+#endif
 
 	if (!MakeUserProfileDirs()) {
 		throw "Failed to create profile directories";

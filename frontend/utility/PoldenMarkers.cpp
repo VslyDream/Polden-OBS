@@ -31,11 +31,10 @@ QString hotkeyName(int color)
 
 QString timestamp(qint64 milliseconds)
 {
-	return QStringLiteral("%1:%2:%3.%4")
-		.arg(milliseconds / 3600000, 2, 10, QLatin1Char('0'))
+	return QStringLiteral("%1:%2:%3")
+		.arg(milliseconds / 3600000)
 		.arg(milliseconds / 60000 % 60, 2, 10, QLatin1Char('0'))
-		.arg(milliseconds / 1000 % 60, 2, 10, QLatin1Char('0'))
-		.arg(milliseconds % 1000, 3, 10, QLatin1Char('0'));
+		.arg(milliseconds / 1000 % 60, 2, 10, QLatin1Char('0'));
 }
 } // namespace
 
@@ -43,7 +42,7 @@ QString PoldenMarkers::colorName(int color)
 {
 	const QStringList names = {tr("Green"),  tr("Red"),   tr("Purple"), tr("Orange"),
 				   tr("Yellow"), tr("White"), tr("Blue"),   tr("Cyan")};
-	return QStringLiteral("%1 · %2").arg(color).arg(names.value(color));
+	return QStringLiteral("%1 · %2").arg(color + 1).arg(names.value(color));
 }
 
 QIcon PoldenMarkers::colorIcon(int color)
@@ -277,8 +276,8 @@ void PoldenMarkers::addMarker(int color)
 		const uint32_t divisor = encoder ? obs_encoder_get_frame_rate_divisor(encoder) : 1;
 		time = timestamp(frames * 1000 * info->fps_den * divisor / info->fps_num);
 		const QFileInfo videoFile(videoPath);
-		QFile file(videoFile.dir().filePath(videoFile.completeBaseName() + QStringLiteral(".csv")));
-		const QByteArray line = (time + QStringLiteral(",%1\n").arg(color)).toUtf8();
+		QFile file(videoFile.dir().filePath(videoFile.completeBaseName() + QStringLiteral(".txt")));
+		const QByteArray line = (time + QStringLiteral(",%1\r\n").arg(color + 1)).toUtf8();
 		if (!file.open(QIODevice::WriteOnly | QIODevice::Append) || file.write(line) != line.size() ||
 		    !file.flush()) {
 			error = tr("Could not write marker: %1").arg(file.errorString());

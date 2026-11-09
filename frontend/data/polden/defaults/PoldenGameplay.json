@@ -1,0 +1,91 @@
+{
+  "name": "Polden Gameplay",
+  "current_scene": "Сцена",
+  "current_program_scene": "Сцена",
+  "scene_order": [
+    {
+      "name": "Сцена"
+    }
+  ],
+  "current_transition": "Fade",
+  "transition_duration": 300,
+  "resolution": {
+    "x": 1920,
+    "y": 1080
+  },
+  "version": 2,
+  "DesktopAudioDevice1": null,
+  "DesktopAudioDevice2": null,
+  "AuxAudioDevice1": null,
+  "AuxAudioDevice2": null,
+  "AuxAudioDevice3": null,
+  "AuxAudioDevice4": null,
+  "sources": [
+    {
+      "name": "Захват игры",
+      "uuid": "0cc76ba6-756e-4495-8807-876f9887965b",
+      "id": "game_capture",
+      "versioned_id": "game_capture",
+      "settings": {
+        "capture_mode": "any_fullscreen",
+        "window": "",
+        "capture_audio": true,
+        "priority": 1,
+        "capture_cursor": true,
+        "capture_overlays": false,
+        "anti_cheat_hook": false,
+        "hook_rate": 1
+      },
+      "mixers": 1,
+      "sync": 0,
+      "volume": 0.7988331913948059,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "monitoring_type": 0
+    },
+    {
+      "name": "Сцена",
+      "uuid": "b68fc7d1-f89f-473b-909f-b98e720fe4c5",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "id_counter": 1,
+        "items": [
+          {
+            "name": "Захват игры",
+            "source_uuid": "0cc76ba6-756e-4495-8807-876f9887965b",
+            "visible": true,
+            "locked": false,
+            "rot": 0.0,
+            "align": 5,
+            "pos": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0
+            },
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920.0,
+              "y": 1080.0
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "id": 1
+          }
+        ]
+      },
+      "mixers": 0,
+      "volume": 1.0,
+      "enabled": true,
+      "muted": false,
+      "canvas_uuid": "6c69626f-6273-4c00-9d88-c5136d61696e"
+    }
+  ]
+}

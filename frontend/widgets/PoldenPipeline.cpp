@@ -4,8 +4,8 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <utility/PoldenMarkers.hpp>
+#include <utility/PoldenFileTransfer.hpp>
 
-#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -20,6 +20,8 @@
 
 #include <memory>
 
+using namespace PoldenFileTransfer;
+
 namespace {
 QString expand(QString text, const QString &root, const QString &footage, const QString &user, const QDateTime &time)
 {
@@ -31,85 +33,6 @@ QString expand(QString text, const QString &root, const QString &footage, const 
 	return QDir::toNativeSeparators(text);
 }
 
-QByteArray fileHash(const QString &path)
-{
-	QFile file(path);
-	if (!file.open(QIODevice::ReadOnly)) {
-		return {};
-	}
-	QCryptographicHash hash(QCryptographicHash::Sha256);
-	while (!file.atEnd()) {
-		QByteArray block = file.read(4 * 1024 * 1024);
-		if (block.isEmpty() && file.error() != QFileDevice::NoError) {
-			return {};
-		}
-		hash.addData(block);
-	}
-	return hash.result();
-}
-
-QString copyVerified(const QString &source, const QString &target, const QString &jobId)
-{
-	QFileInfo sourceInfo(source);
-	if (!sourceInfo.isFile() || sourceInfo.size() == 0) {
-		return QStringLiteral("Source file is missing or empty: %1").arg(source);
-	}
-	if (!QDir().mkpath(QFileInfo(target).absolutePath())) {
-		return QStringLiteral("Could not create LucidLink folder: %1").arg(QFileInfo(target).absolutePath());
-	}
-	const QByteArray sourceHash = fileHash(source);
-	if (sourceHash.isEmpty()) {
-		return QStringLiteral("Could not read source file: %1").arg(source);
-	}
-	if (QFile::exists(target)) {
-		if (fileHash(target) == sourceHash) {
-			return {};
-		}
-		return QStringLiteral("Target already exists with different contents: %1").arg(target);
-	}
-	QString temporary = target + QStringLiteral(".polden-part-") + jobId;
-	if (QFile::exists(temporary)) {
-		QFile::remove(temporary);
-	}
-	if (!QFile::copy(source, temporary)) {
-		return QStringLiteral("Could not copy to LucidLink: %1").arg(target);
-	}
-	if (fileHash(temporary) != sourceHash) {
-		QFile::remove(temporary);
-		return QStringLiteral("LucidLink copy did not pass checksum verification: %1").arg(target);
-	}
-	if (!QFile::rename(temporary, target)) {
-		return QStringLiteral("Could not finalize LucidLink file: %1").arg(target);
-	}
-	return {};
-}
-
-QString copyRecordingSidecars(const QString &originalVideo, const QString &targetVideo, const QString &jobId)
-{
-	const QFileInfo original(originalVideo);
-	const QFileInfo target(targetVideo);
-	for (const QString &extension : {QStringLiteral("csv"), QStringLiteral("txt")}) {
-		QString sidecar = original.absolutePath() + QDir::separator() + original.completeBaseName() +
-				  QStringLiteral(".") + extension;
-		if (!QFile::exists(sidecar)) {
-			continue;
-		}
-		QString destination = target.absolutePath() + QDir::separator() + target.completeBaseName() +
-				      QStringLiteral(".") + extension;
-		QString error = copyVerified(sidecar, destination, jobId + QStringLiteral("-") + extension);
-		if (!error.isEmpty()) {
-			return error;
-		}
-	}
-	return {};
-}
-
-QString copyVideoAndMarkers(const QString &sourceVideo, const QString &targetVideo, const QString &originalVideo,
-			    const QString &jobId)
-{
-	QString error = copyVerified(sourceVideo, targetVideo, jobId);
-	return error.isEmpty() ? copyRecordingSidecars(originalVideo, targetVideo, jobId) : error;
-}
 } // namespace
 
 QString PoldenPanel::jobsPath() const
@@ -148,6 +71,7 @@ void PoldenPanel::loadJobs()
 		job.targetLevel = qBound(0, object.value(QStringLiteral("targetLevel")).toInt(), 2);
 		job.converted = object.value(QStringLiteral("converted")).toBool();
 		job.copied = object.value(QStringLiteral("copied")).toBool();
+		job.cancelled = object.value(QStringLiteral("cancelled")).toBool();
 		if (!job.id.isEmpty() && !job.sourcePath.isEmpty()) {
 			jobs.append(job);
 		}
@@ -169,7 +93,8 @@ void PoldenPanel::saveJobs()
 					 {QStringLiteral("error"), job.error},
 					 {QStringLiteral("targetLevel"), job.targetLevel},
 					 {QStringLiteral("converted"), job.converted},
-					 {QStringLiteral("copied"), job.copied}});
+					 {QStringLiteral("copied"), job.copied},
+					 {QStringLiteral("cancelled"), job.cancelled}});
 	}
 	QString path = jobsPath();
 	if (path.isEmpty()) {
@@ -197,6 +122,16 @@ PoldenPanel::Job *PoldenPanel::lastJobForSelectedProject()
 {
 	for (auto it = jobs.rbegin(); it != jobs.rend(); ++it) {
 		if (it->projectId == selectedProjectId) {
+			return &*it;
+		}
+	}
+	return nullptr;
+}
+
+PoldenPanel::Job *PoldenPanel::retryableJobForSelectedProject()
+{
+	for (auto it = jobs.rbegin(); it != jobs.rend(); ++it) {
+		if (it->projectId == selectedProjectId && (it->cancelled || !it->error.isEmpty())) {
 			return &*it;
 		}
 	}
@@ -286,7 +221,7 @@ void PoldenPanel::pump()
 		return;
 	}
 	for (Job &job : jobs) {
-		if (!job.error.isEmpty() || job.targetLevel == 0) {
+		if (job.cancelled || !job.error.isEmpty() || job.targetLevel == 0) {
 			continue;
 		}
 		if (job.targetLevel >= 1 && !job.converted) {
@@ -337,39 +272,48 @@ void PoldenPanel::startConversion(Job &job)
 			       QStringLiteral("-movflags"), QStringLiteral("+faststart"), QStringLiteral("-f"),
 			       QStringLiteral("mp4"), temporary});
 	setStatus(tr("Converting %1 to MP4…").arg(QFileInfo(job.sourcePath).fileName()));
-	connect(process, &QProcess::finished, this, [this, process, id, temporary](int exitCode) {
-		if (converter != process) {
-			return;
-		}
-		QString error = QString::fromUtf8(process->readAllStandardError()).trimmed();
-		converter = nullptr;
-		process->deleteLater();
-		if (Job *item = jobById(id)) {
-			if (exitCode == 0 && QFileInfo(temporary).size() > 0 &&
-			    QFile::rename(temporary, item->localPath)) {
-				item->error = copyRecordingSidecars(item->sourcePath, item->localPath, id);
-				item->converted = item->error.isEmpty();
-				if (item->converted) {
-					setStatus(tr("Converted %1.").arg(item->fileName));
-				}
-			} else {
-				item->error =
-					tr("FFmpeg conversion failed: %1").arg(error.isEmpty() ? temporary : error);
-				QFile::remove(temporary);
+	refresh();
+	connect(process, &QProcess::finished, this,
+		[this, process, id, temporary](int exitCode, QProcess::ExitStatus exitStatus) {
+			if (converter != process) {
+				return;
 			}
-			saveJobs();
-			refresh();
-		}
-		pump();
-	});
-	connect(process, &QProcess::errorOccurred, this, [this, process, id](QProcess::ProcessError error) {
+			QString error = QString::fromUtf8(process->readAllStandardError()).trimmed();
+			converter = nullptr;
+			process->deleteLater();
+			if (Job *item = jobById(id)) {
+				if (item->cancelled) {
+					QFile::remove(temporary);
+					setStatus(tr("Processing cancelled. Original recordings kept."));
+				} else if (exitStatus == QProcess::NormalExit && exitCode == 0 &&
+					   QFileInfo(temporary).size() > 0 &&
+					   QFile::rename(temporary, item->localPath)) {
+					item->error = copyRecordingSidecars(item->sourcePath, item->localPath, id);
+					item->converted = item->error.isEmpty();
+					if (item->converted) {
+						setStatus(tr("Converted %1.").arg(item->fileName));
+					}
+				} else {
+					item->error = tr("FFmpeg conversion failed: %1")
+							      .arg(error.isEmpty() ? temporary : error);
+					QFile::remove(temporary);
+				}
+				saveJobs();
+				refresh();
+			}
+			pump();
+		});
+	connect(process, &QProcess::errorOccurred, this, [this, process, id, temporary](QProcess::ProcessError error) {
 		if (error != QProcess::FailedToStart || converter != process) {
 			return;
 		}
 		converter = nullptr;
 		process->deleteLater();
+		QFile::remove(temporary);
 		if (Job *item = jobById(id)) {
-			item->error = tr("Could not start FFmpeg: %1").arg(process->errorString());
+			if (!item->cancelled) {
+				item->error = tr("Could not start FFmpeg: %1").arg(process->errorString());
+			}
 			saveJobs();
 			refresh();
 		}
@@ -381,18 +325,25 @@ void PoldenPanel::startConversion(Job &job)
 void PoldenPanel::startCopy(Job &job)
 {
 	copying = true;
+	copyCancellation = std::make_shared<std::atomic_bool>(false);
+	const auto cancel = copyCancellation;
 	const QString id = job.id;
 	const QString source = job.localPath;
 	const QString destination = job.destinationPath;
 	const QString original = job.sourcePath;
 	auto result = std::make_shared<QString>();
 	setStatus(tr("Copying %1 to LucidLink…").arg(job.fileName));
-	QThread *thread = QThread::create([=]() { *result = copyVideoAndMarkers(source, destination, original, id); });
+	refresh();
+	QThread *thread =
+		QThread::create([=]() { *result = copyVideoAndMarkers(source, destination, original, id, cancel); });
 	connect(thread, &QThread::finished, this, [this, id, result, thread]() {
 		copying = false;
+		copyCancellation.reset();
 		thread->deleteLater();
 		if (Job *item = jobById(id)) {
-			if (result->isEmpty()) {
+			if (item->cancelled) {
+				setStatus(tr("Processing cancelled. Original recordings kept."));
+			} else if (result->isEmpty()) {
 				item->copied = true;
 				setStatus(tr("Copied %1 to LucidLink.").arg(item->fileName));
 			} else {
@@ -404,4 +355,23 @@ void PoldenPanel::startCopy(Job &job)
 		pump();
 	});
 	thread->start();
+}
+
+void PoldenPanel::cancelProcessing()
+{
+	for (Job &job : jobs) {
+		if (job.targetLevel > 0 && (!job.converted || (job.targetLevel >= 2 && !job.copied))) {
+			job.cancelled = true;
+		}
+	}
+	if (copyCancellation) {
+		copyCancellation->store(true);
+	}
+	if (converter) {
+		converter->kill();
+	}
+	saveJobs();
+	refresh();
+	setStatus(processingFiles() ? tr("Cancelling processing…")
+				    : tr("Processing cancelled. Original recordings kept."));
 }

@@ -6,6 +6,9 @@
 #include <QVector>
 #include <QWidget>
 
+#include <atomic>
+#include <memory>
+
 class OBSBasic;
 class QComboBox;
 class QLabel;
@@ -56,6 +59,7 @@ private:
 		int targetLevel = 0;
 		bool converted = false;
 		bool copied = false;
+		bool cancelled = false;
 	};
 
 	OBSBasic *main;
@@ -64,6 +68,7 @@ private:
 	QLabel *statusLabel = nullptr;
 	QPushButton *editButton = nullptr;
 	QPushButton *retryButton = nullptr;
+	QPushButton *cancelButton = nullptr;
 	QVector<Project> projects;
 	QVector<Job> jobs;
 	Settings settings;
@@ -76,6 +81,7 @@ private:
 	QStringList recordingFiles;
 	QProcess *converter = nullptr;
 	bool copying = false;
+	std::shared_ptr<std::atomic_bool> copyCancellation;
 	PoldenUpdater *updater = nullptr;
 	PoldenMarkers *markers = nullptr;
 	QWidget *markerButtonsWidget = nullptr;
@@ -97,8 +103,10 @@ private:
 	void loadJobs();
 	void saveJobs();
 	Job *lastJobForSelectedProject();
+	Job *retryableJobForSelectedProject();
 	Job *jobById(const QString &id);
 	void pump();
 	void startConversion(Job &job);
 	void startCopy(Job &job);
+	void cancelProcessing();
 };

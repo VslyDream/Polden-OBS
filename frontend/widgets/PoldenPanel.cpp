@@ -4,6 +4,8 @@
 
 #include <OBSApp.hpp>
 #include <obs.hpp>
+#include <obs-frontend-api.h>
+#include <util/platform.h>
 
 #include "ui-config.h"
 #include <utility/PoldenUpdater.hpp>
@@ -143,7 +145,12 @@ PoldenPanel::PoldenPanel(OBSBasic *main) : QWidget(main), main(main)
 	statusLabel->setWordWrap(true);
 	layout->addWidget(statusLabel);
 	retryButton = new QPushButton(tr("Retry last failed step"), this);
+	retryButton->setObjectName(QStringLiteral("poldenRetry"));
 	layout->addWidget(retryButton);
+	cancelButton = new QPushButton(tr("Cancel processing"), this);
+	cancelButton->setObjectName(QStringLiteral("poldenCancelProcessing"));
+	cancelButton->setToolTip(tr("Cancel conversion, LucidLink copying and queued jobs. Keep original recordings."));
+	layout->addWidget(cancelButton);
 	auto *settingsButton = new QPushButton(tr("Polden settings…"), this);
 	settingsButton->setObjectName(QStringLiteral("poldenSettings"));
 	layout->addWidget(settingsButton);
@@ -178,10 +185,13 @@ PoldenPanel::PoldenPanel(OBSBasic *main) : QWidget(main), main(main)
 	connect(editButton, &QPushButton::clicked, this, [this]() { showProjectDialog(true); });
 	connect(settingsButton, &QPushButton::clicked, this, [this]() { showSettingsDialog(); });
 	connect(openFolderButton, &QPushButton::clicked, this, &PoldenPanel::openFilesFolder);
+	connect(cancelButton, &QPushButton::clicked, this, &PoldenPanel::cancelProcessing);
 	connect(retryButton, &QPushButton::clicked, this, [this]() {
-		if (Job *job = lastJobForSelectedProject()) {
+		if (Job *job = retryableJobForSelectedProject()) {
 			job->error.clear();
+			job->cancelled = false;
 			saveJobs();
+			refresh();
 			pump();
 		}
 	});
@@ -248,7 +258,7 @@ void PoldenPanel::refreshMarkerButtons()
 
 bool PoldenPanel::processingFiles() const
 {
-	return copying || (converter && converter->state() != QProcess::NotRunning);
+	return copying || converter != nullptr;
 }
 
 QString PoldenPanel::configPath() const
@@ -359,9 +369,25 @@ void PoldenPanel::refresh()
 	automationCombo->setEnabled(project != nullptr);
 	automationCombo->setCurrentIndex(project ? project->automation : 0);
 	const Job *last = lastJobForSelectedProject();
-	retryButton->setVisible(last != nullptr && !last->error.isEmpty());
+	const Job *retryable = retryableJobForSelectedProject();
+	retryButton->setVisible(retryable != nullptr);
+	retryButton->setText(retryable && retryable->cancelled ? tr("Resume cancelled job")
+							       : tr("Retry last failed step"));
+	retryButton->setEnabled(!processingFiles());
+	bool pending = false;
+	for (const Job &job : jobs) {
+		if (!job.cancelled && job.targetLevel > 0 &&
+		    (!job.converted || (job.targetLevel >= 2 && !job.copied))) {
+			pending = true;
+			break;
+		}
+	}
+	cancelButton->setEnabled(pending);
 	if (!project) {
 		setStatus(tr("Add a game project to begin."));
+	} else if (last && last->cancelled) {
+		setStatus(processingFiles() ? tr("Cancelling processing…")
+					    : tr("Processing cancelled. Original recordings kept."));
 	} else if (last && !last->error.isEmpty()) {
 		setStatus(tr("Polden: %1").arg(last->error));
 	}
@@ -574,6 +600,13 @@ void PoldenPanel::showSettingsDialog()
 	auto *form = new QFormLayout;
 	auto *operatorName = new QLineEdit(settings.operatorName, &dialog);
 	auto *directoryTemplate = new QLineEdit(settings.directoryTemplate, &dialog);
+	auto *filenameFormat = new QLineEdit(
+		QString::fromUtf8(config_get_string(main->Config(), "Output", "FilenameFormatting")), &dialog);
+	filenameFormat->setObjectName(QStringLiteral("poldenFilenameFormat"));
+	filenameFormat->setEnabled(!obs_frontend_recording_active());
+	filenameFormat->setToolTip(
+		tr("OBS filename format, without extension. Example: Vasiliy_%CCYY-%MM-%DD-%hh-%mm-%ss. "
+		   "Applies to new recordings; MP4 and markers keep the same name. Stop recording to edit."));
 	auto *ffmpegPath = new QLineEdit(settings.ffmpegPath, &dialog);
 	auto *browseFfmpeg = new QPushButton(tr("Browse…"), &dialog);
 	auto *ffmpegRow = new QHBoxLayout;
@@ -594,17 +627,26 @@ void PoldenPanel::showSettingsDialog()
 						    : QStringLiteral("L:/Meowgic/02_Assets/01_VIDEO");
 		QString path = previewPath(directoryTemplate->text(), gameRoot, footage, operatorName->text(),
 					   QDateTime::currentDateTime());
-		QString name = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH-mm-ss")) +
-			       QStringLiteral(".mp4");
+		const bool advanced = qstricmp(config_get_string(main->Config(), "Output", "Mode"), "Advanced") == 0;
+		const bool noSpace = config_get_bool(main->Config(), advanced ? "AdvOut" : "SimpleOutput",
+						     advanced ? "RecFileNameWithoutSpace" : "FileNameWithoutSpace");
+		BPtr<char> formatted =
+			os_generate_formatted_filename("mp4", !noSpace, filenameFormat->text().toUtf8().constData());
+		QString name = QFileInfo(QString::fromUtf8(formatted.Get())).fileName();
 		preview->setText(tr("Example: %1").arg(QDir(path).filePath(name)));
 	};
 	connect(directoryTemplate, &QLineEdit::textChanged, &dialog, updatePreview);
 	connect(operatorName, &QLineEdit::textChanged, &dialog, updatePreview);
+	connect(filenameFormat, &QLineEdit::textChanged, &dialog, updatePreview);
 	updatePreview();
 	form->addRow(tr("Recorder name"), operatorName);
 	form->addRow(tr("Video folder template"), directoryTemplate);
-	form->addRow(tr("Filename"),
-		     new QLabel(tr("Original recording name (only extension changes to .mp4)"), &dialog));
+	form->addRow(tr("Recording / MP4 filename"), filenameFormat);
+	auto *filenameHelp = new QLabel(tr("Without extension. %CCYY-%MM-%DD = date, %hh-%mm-%ss = time. "
+					   "Uses the active OBS profile's current format."),
+					&dialog);
+	filenameHelp->setWordWrap(true);
+	form->addRow(QString(), filenameHelp);
 	form->addRow(tr("FFmpeg"), ffmpegRow);
 	generalLayout->addLayout(form);
 	generalLayout->addWidget(preview);
@@ -612,6 +654,12 @@ void PoldenPanel::showSettingsDialog()
 	auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
 	layout->addWidget(buttons);
 	connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
+		if (filenameFormat->text().trimmed().isEmpty()) {
+			tabs->setCurrentWidget(general);
+			filenameFormat->setFocus();
+			QMessageBox::warning(&dialog, tr("Filename"), tr("Enter a recording filename format."));
+			return;
+		}
 		if (markerSettings && !markerSettings->validate()) {
 			tabs->setCurrentWidget(markerSettings);
 			return;
@@ -625,6 +673,11 @@ void PoldenPanel::showSettingsDialog()
 	settings.operatorName = operatorName->text().trimmed();
 	settings.directoryTemplate = directoryTemplate->text().trimmed();
 	settings.ffmpegPath = ffmpegPath->text().trimmed();
+	if (filenameFormat->isEnabled()) {
+		config_set_string(main->Config(), "Output", "FilenameFormatting",
+				  filenameFormat->text().trimmed().toUtf8().constData());
+		config_save_safe(main->Config(), "tmp", nullptr);
+	}
 	if (markerSettings) {
 		markerSettings->apply();
 	}

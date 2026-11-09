@@ -60,6 +60,10 @@ target_sources(
     widgets/PoldenPanel.cpp
     widgets/PoldenPanel.hpp
     widgets/PoldenPipeline.cpp
+    utility/PoldenDefaults.cpp
+    utility/PoldenDefaults.hpp
+    utility/PoldenFileTransfer.cpp
+    utility/PoldenFileTransfer.hpp
     utility/PoldenMarkers.cpp
     utility/PoldenMarkers.hpp
     utility/PoldenUpdater.cpp
