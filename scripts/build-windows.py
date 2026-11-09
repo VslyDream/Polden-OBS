@@ -1,6 +1,7 @@
 """Build the configured OBS solution with a Windows-safe environment."""
 
 import argparse
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -9,6 +10,31 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 VSWHERE = Path(r"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe")
+
+
+def check_build_not_running(build_dir: str, environment: dict[str, str]) -> bool:
+    runtime = (ROOT / build_dir / "rundir" / "Release").resolve()
+    check_environment = dict(environment)
+    check_environment["POLDEN_BUILD_RUNTIME"] = str(runtime)
+    check_environment["POLDEN_LATEST_ALIAS"] = str(ROOT / "latest") if (ROOT / "latest").resolve() == runtime else ""
+    result = subprocess.run([
+        "powershell.exe", "-NoProfile", "-Command",
+        "$ErrorActionPreference = 'Stop'; "
+        "$paths = @($env:POLDEN_BUILD_RUNTIME, $env:POLDEN_LATEST_ALIAS) | Where-Object { $_ }; "
+        "$blocked = @(Get-CimInstance Win32_Process -Filter \"Name='obs64.exe'\" | Where-Object { "
+        "if (-not $_.ExecutablePath) { throw 'Cannot inspect running OBS path' }; "
+        "$executable = $_.ExecutablePath; "
+        "@($paths | Where-Object { $executable.StartsWith($_.TrimEnd('\\') + '\\', "
+        "[System.StringComparison]::OrdinalIgnoreCase) }).Count -gt 0 "
+        "} | Select-Object -ExpandProperty ProcessId); ConvertTo-Json -InputObject $blocked -Compress",
+    ], env=check_environment, text=True, capture_output=True)
+    if result.returncode:
+        raise RuntimeError(f"Could not check running OBS before building: {result.stderr.strip()}")
+    if json.loads(result.stdout or "[]"):
+        print("This build directory is used by a running Polden OBS. Build in another directory with "
+              "--configure --no-publish, then ask the user to close OBS and publish the prepared build.", file=sys.stderr)
+        return False
+    return True
 
 
 def main() -> int:
@@ -20,6 +46,12 @@ def main() -> int:
     parser.add_argument("--no-publish", action="store_true", help="Keep the current local latest shortcut unchanged")
     args = parser.parse_args()
 
+    # Check before CMake/MSBuild can overwrite any running executable or DLL.
+    environment = {key: value for key, value in os.environ.items() if key.casefold() != "path"}
+    environment["Path"] = os.environ.get("Path", os.environ.get("PATH", ""))
+    if not check_build_not_running(args.build_dir, environment):
+        return 75
+
     install_path = subprocess.check_output(
         [str(VSWHERE), "-latest", "-products", "*", "-property", "installationPath"], text=True
     ).strip()
@@ -29,8 +61,6 @@ def main() -> int:
 
     # Some launchers provide both Path and PATH. MSBuild's .NET Framework tool
     # launcher throws MSB6001 when it copies that environment to child processes.
-    environment = {key: value for key, value in os.environ.items() if key.casefold() != "path"}
-    environment["Path"] = os.environ.get("Path", os.environ.get("PATH", ""))
     if args.configure:
         cmake = Path(install_path) / "Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
         result = subprocess.call([
