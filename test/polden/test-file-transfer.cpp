@@ -46,7 +46,18 @@ int main(int argc, char **argv)
 		const QString source = root.filePath(QStringLiteral("Исходное 2026-11-02-18-28-52.mkv"));
 		const QString target = root.filePath(QStringLiteral("Lucid/Исходное 2026-11-02-18-28-52.mp4"));
 		write(source, "video bytes");
-		require(copyVerified(source, target, "test").isEmpty(), "Copy succeeded");
+		qint64 previousBytes = -1;
+		int progressEvents = 0;
+		require(copyVerified(source, target, "test", {},
+				     [&](qint64 bytes, qint64 total) {
+					     require(bytes >= previousBytes && bytes <= total && total == 11,
+						     "Monotonic byte progress");
+					     previousBytes = bytes;
+					     ++progressEvents;
+				     })
+				.isEmpty(),
+			"Copy succeeded");
+		require(progressEvents >= 2 && previousBytes == 11, "Copy reports start and end bytes");
 		require(read(source) == read(target), "Copied bytes match");
 		require(copyVerified(source, target, "retry").isEmpty(), "Identical delivery is idempotent");
 		write(source, "different video");
@@ -60,6 +71,22 @@ int main(int argc, char **argv)
 		write(source.left(source.size() - 4) + ".csv", "00:00:12.350,0\n");
 		require(copyRecordingSidecars(source, target, "legacy").isEmpty(), "Legacy CSV delivered");
 		require(read(target.left(target.size() - 4) + ".csv") == "00:00:12.350,0\n", "CSV preserved");
+		const QString ownedTarget = root.filePath("Owned/video.mp4");
+		QStringList delivered;
+		require(copyVideoAndMarkers(source, ownedTarget, source, "owned", {}, {}, &delivered).isEmpty(),
+			"Track delivered files");
+		require(delivered.size() == 3 && delivered.contains(ownedTarget),
+			"Delivery tracks video and both sidecars");
+		const QString partialTarget = root.filePath("Partial/video.mp4");
+		require(QDir().mkpath(root.filePath("Partial")), "Create partial delivery folder");
+		write(root.filePath("Partial/video.csv"), "belongs to another recording");
+		delivered.clear();
+		require(!copyVideoAndMarkers(source, partialTarget, source, "partial", {}, {}, &delivered).isEmpty(),
+			"Conflicting sidecar rejects the delivery");
+		require(delivered == QStringList{partialTarget},
+			"Committed video remains tracked after sidecar failure");
+		require(read(root.filePath("Partial/video.csv")) == "belongs to another recording",
+			"Conflicting sidecar remains untouched and unowned");
 
 		auto cancel = std::make_shared<std::atomic_bool>(true);
 		const QString cancelledTarget = root.filePath("cancelled.mp4");

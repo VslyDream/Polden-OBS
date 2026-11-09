@@ -134,6 +134,20 @@ void OBSHotkeyWidget::AddEdit(obs_key_combination combo, int idx)
 	subLayout->addWidget(clear);
 	subLayout->addWidget(add);
 	subLayout->addWidget(remove);
+	if (compact) {
+		revert->hide();
+		add->hide();
+		remove->hide();
+		clear->setProperty("class", QVariant());
+		clear->setText(QStringLiteral("×"));
+		clear->setFixedWidth(28);
+		// Preserve additional bindings; the full OBS Hotkeys page edits them.
+		if (!edits.empty()) {
+			edit->hide();
+			clear->hide();
+			subLayout->setContentsMargins(0, 0, 0, 0);
+		}
+	}
 
 	if (removeButtons.size() == 1) {
 		removeButtons.front()->setEnabled(true);

@@ -32,13 +32,14 @@ class OBSHotkeyWidget : public QWidget {
 
 public:
 	OBSHotkeyWidget(QWidget *parent, obs_hotkey_id id, std::string name, OBSBasicSettings *settings,
-			const std::vector<obs_key_combination_t> &combos = {})
+			const std::vector<obs_key_combination_t> &combos = {}, bool compact = false)
 		: QWidget(parent),
 		  id(id),
 		  name(name),
 		  bindingsChanged(obs_get_signal_handler(), "hotkey_bindings_changed",
 				  &OBSHotkeyWidget::BindingsChanged, this),
-		  settings(settings)
+		  settings(settings),
+		  compact(compact)
 	{
 		auto layout = new QVBoxLayout;
 		layout->setSpacing(0);
@@ -87,6 +88,7 @@ private:
 	OBSSignal bindingsChanged;
 	bool ignoreChangedBindings = false;
 	OBSBasicSettings *settings;
+	bool compact = false;
 
 	QVBoxLayout *layout() const { return dynamic_cast<QVBoxLayout *>(QWidget::layout()); }
 

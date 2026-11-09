@@ -14,6 +14,10 @@ class QComboBox;
 class QLabel;
 class QPushButton;
 class QProcess;
+class QToolButton;
+class QButtonGroup;
+class QMenu;
+class QProgressBar;
 class PoldenUpdater;
 class PoldenMarkers;
 
@@ -45,9 +49,12 @@ private:
 		QString operatorName = QStringLiteral("Vasiliy");
 		QString directoryTemplate = QStringLiteral("{footage}/{date}");
 		QString ffmpegPath;
+		QString videoSubfolder = QStringLiteral("02_Assets/01_VIDEO");
+		QString gameNameTemplate = QStringLiteral("{folder}");
 	};
 	struct Job {
 		QString id;
+		QString takeId;
 		QString projectId;
 		QString sourcePath;
 		QString localPath;
@@ -60,13 +67,27 @@ private:
 		bool converted = false;
 		bool copied = false;
 		bool cancelled = false;
+		qint64 durationMs = 0;
+		qint64 segmentDurationMs = 0;
+		int markerCount = 0;
+		QStringList deliveredFiles;
 	};
 
 	OBSBasic *main;
-	QComboBox *projectCombo = nullptr;
-	QComboBox *automationCombo = nullptr;
+	QToolButton *projectButton = nullptr;
+	QMenu *projectMenu = nullptr;
+	QButtonGroup *automationButtons = nullptr;
+	QLabel *automationLabel = nullptr;
+	QWidget *emptyGame = nullptr;
+	QLabel *takeTitle = nullptr;
+	QLabel *takeFile = nullptr;
+	QLabel *takeDetails = nullptr;
+	QProgressBar *takeProgress = nullptr;
+	QWidget *backgroundProcessing = nullptr;
+	QLabel *backgroundLabel = nullptr;
+	QToolButton *deleteButton = nullptr;
+	QPushButton *openFolderButton = nullptr;
 	QLabel *statusLabel = nullptr;
-	QPushButton *editButton = nullptr;
 	QPushButton *retryButton = nullptr;
 	QPushButton *cancelButton = nullptr;
 	QVector<Project> projects;
@@ -79,6 +100,7 @@ private:
 	int recordingAutomation = 0;
 	QDateTime recordingStartedAt;
 	QStringList recordingFiles;
+	QVector<qint64> recordingSegmentEnds;
 	QProcess *converter = nullptr;
 	bool copying = false;
 	std::shared_ptr<std::atomic_bool> copyCancellation;
@@ -86,6 +108,18 @@ private:
 	PoldenMarkers *markers = nullptr;
 	QWidget *markerButtonsWidget = nullptr;
 	bool markerRecording = false;
+	bool recording = false;
+	QString activeJobId;
+	int processingProgress = -1;
+	QString lastMarker;
+	QStringList pendingDeleteIds;
+	QStringList pendingDeleteLocal;
+	QStringList pendingDeleteRemote;
+	void refreshTake();
+	void deleteLastTake();
+	void finishTakeDeletion();
+	void applyFilenameTemplate();
+	QString filenameTemplate() const;
 	void refreshMarkerButtons();
 
 	QString configPath() const;

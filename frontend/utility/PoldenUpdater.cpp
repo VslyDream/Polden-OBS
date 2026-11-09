@@ -129,6 +129,7 @@ void PoldenUpdater::check(bool manual)
 			release = candidate;
 			asset = file;
 			blog(LOG_INFO, "Polden: update %s is available", version.toUtf8().constData());
+			button->setText(tr("Update to %1").arg(version));
 			button->setToolTip(tr("Polden %1 is available — update and restart").arg(version));
 			button->show();
 			if (manual) {

@@ -2,9 +2,12 @@
 
 #include <OBSApp.hpp>
 #include <obs-frontend-api.h>
+#include <util/dstr.hpp>
 #include <settings/OBSHotkeyWidget.hpp>
 
-#include <QCheckBox>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <components/FlowLayout.hpp>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -14,6 +17,7 @@
 #include <QLabel>
 #include <QMutexLocker>
 #include <QPixmap>
+#include <QPainter>
 #include <QSaveFile>
 #include <QVBoxLayout>
 
@@ -48,7 +52,13 @@ QString PoldenMarkers::colorName(int color)
 QIcon PoldenMarkers::colorIcon(int color)
 {
 	QPixmap swatch(16, 16);
-	swatch.fill(QColor(QString::fromLatin1(markerColors.at(color))));
+	swatch.fill(Qt::transparent);
+	QPainter painter(&swatch);
+	painter.setRenderHint(QPainter::Antialiasing);
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(QColor(QString::fromLatin1(markerColors.at(color))));
+	painter.drawEllipse(QRectF(2, 2, 12, 12));
+	painter.end();
 	return QIcon(swatch);
 }
 
@@ -136,20 +146,64 @@ void PoldenMarkers::hotkey(void *data, obs_hotkey_id id, obs_hotkey_t *, bool pr
 	QMetaObject::invokeMethod(markers, [markers, color]() { markers->addMarker(color); }, Qt::AutoConnection);
 }
 
+QString PoldenMarkers::shortcutText(int color) const
+{
+	OBSDataArrayAutoRelease bindings = obs_hotkey_save(hotkeys[color]);
+	QStringList result;
+	for (size_t i = 0; i < obs_data_array_count(bindings); ++i) {
+		OBSDataAutoRelease data = obs_data_array_item(bindings, i);
+		obs_key_combination_t combo{};
+		combo.key = obs_key_from_name(obs_data_get_string(data, "key"));
+		if (obs_data_get_bool(data, "control")) {
+			combo.modifiers |= INTERACT_CONTROL_KEY;
+		}
+		if (obs_data_get_bool(data, "shift")) {
+			combo.modifiers |= INTERACT_SHIFT_KEY;
+		}
+		if (obs_data_get_bool(data, "alt")) {
+			combo.modifiers |= INTERACT_ALT_KEY;
+		}
+		if (obs_data_get_bool(data, "command")) {
+			combo.modifiers |= INTERACT_COMMAND_KEY;
+		}
+		DStr text;
+		obs_key_combination_to_str(combo, text);
+		result.append(QString::fromUtf8(static_cast<const char *>(text)));
+	}
+	return result.isEmpty() ? tr("No shortcut") : result.join(QStringLiteral(" / "));
+}
+
+qint64 PoldenMarkers::elapsedMs()
+{
+	QMutexLocker lock(&recordingMutex);
+	if (!output) {
+		return 0;
+	}
+	video_t *video = obs_output_video(output);
+	const video_output_info *info = video ? video_output_get_info(video) : nullptr;
+	obs_encoder_t *encoder = obs_output_get_video_encoder(output);
+	const uint32_t divisor = encoder ? obs_encoder_get_frame_rate_divisor(encoder) : 1;
+	return info && info->fps_num
+		       ? qint64(obs_output_get_total_frames(output)) * 1000 * info->fps_den * divisor / info->fps_num
+		       : 0;
+}
+
 PoldenMarkerSettings::PoldenMarkerSettings(PoldenMarkers *markers, QWidget *parent) : QWidget(parent), markers(markers)
 {
 	setObjectName(QStringLiteral("poldenMarkerSettings"));
 	auto *layout = new QVBoxLayout(this);
-	auto *help = new QLabel(tr("Assign a key or combination to each Premiere marker color. "
-				   "Enable a panel button only for the colors you want to click."),
-				this);
+	layout->addWidget(new QLabel(tr("Buttons on the dock"), this));
+	auto *chips = new QWidget(this);
+	auto *chipLayout = new FlowLayout(chips, 0, 6, 6);
+	layout->addWidget(chips);
+	auto *help = new QLabel(tr("Click a color to show or hide its dock button."), this);
 	help->setWordWrap(true);
 	layout->addWidget(help);
+	layout->addWidget(new QLabel(tr("Shortcuts"), this));
 	auto *form = new QGridLayout;
-	form->addWidget(new QLabel(tr("Color"), this), 0, 0);
-	form->addWidget(new QLabel(tr("Shortcut"), this), 0, 1);
-	form->addWidget(new QLabel(tr("Button on panel"), this), 0, 2);
+	form->setColumnStretch(0, 1);
 	form->setColumnStretch(1, 1);
+	form->setHorizontalSpacing(20);
 	for (int color = 0; color < 8; ++color) {
 		struct Bindings {
 			obs_hotkey_id id;
@@ -164,27 +218,46 @@ PoldenMarkerSettings::PoldenMarkerSettings(PoldenMarkers *markers, QWidget *pare
 				return true;
 			},
 			&bindings);
-		auto *label = new QLabel(PoldenMarkers::colorName(color), this);
-		label->setStyleSheet(QStringLiteral("QLabel { border-left: 12px solid %1; padding-left: 6px; }")
-					     .arg(QString::fromLatin1(markerColors[color])));
-		editors[color] = new OBSHotkeyWidget(this, markers->hotkeys[color], hotkeyName(color).toStdString(),
-						     nullptr, bindings.combos);
-		editors[color]->setObjectName(QStringLiteral("poldenMarkerShortcut%1").arg(color));
-		buttons[color] = new QCheckBox(this);
+		buttons[color] = new QPushButton(PoldenMarkers::colorIcon(color), QString::number(color + 1), chips);
 		buttons[color]->setObjectName(QStringLiteral("poldenMarkerShowButton%1").arg(color));
-		buttons[color]->setAccessibleName(tr("Show %1 button on panel").arg(PoldenMarkers::colorName(color)));
+		buttons[color]->setAccessibleName(tr("Show %1 button on dock").arg(PoldenMarkers::colorName(color)));
+		buttons[color]->setToolTip(PoldenMarkers::colorName(color));
+		buttons[color]->setFixedSize(52, 32);
+		buttons[color]->setCheckable(true);
 		buttons[color]->setChecked(markers->buttonVisible(color));
-		form->addWidget(label, color + 1, 0);
-		form->addWidget(editors[color], color + 1, 1);
-		form->addWidget(buttons[color], color + 1, 2, Qt::AlignCenter);
+		chipLayout->addWidget(buttons[color]);
+		auto *cell = new QWidget(this);
+		auto *cellLayout = new QVBoxLayout(cell);
+		cellLayout->setContentsMargins(0, 4, 0, 4);
+		auto *label = new QLabel(PoldenMarkers::colorName(color), cell);
+		label->setStyleSheet(QStringLiteral("border-left: 10px solid %1; padding-left: 6px;")
+					     .arg(QString::fromLatin1(markerColors[color])));
+		cellLayout->addWidget(label);
+		editors[color] = new OBSHotkeyWidget(cell, markers->hotkeys[color], hotkeyName(color).toStdString(),
+						     nullptr, bindings.combos, true);
+		editors[color]->setObjectName(QStringLiteral("poldenMarkerShortcut%1").arg(color));
+		cellLayout->addWidget(editors[color]);
+		form->addWidget(cell, color % 4, color / 4);
+		connect(editors[color], &OBSHotkeyWidget::KeyChanged, this, [this]() { validate(); });
 	}
 	layout->addLayout(form);
 	errorLabel = new QLabel(this);
 	errorLabel->setWordWrap(true);
 	errorLabel->setObjectName(QStringLiteral("poldenMarkerSettingsError"));
 	layout->addWidget(errorLabel);
+	auto *hint = new QLabel(
+		tr("More shortcuts per color: OBS Settings → Hotkeys. Markers are saved beside each video as TXT (H:MM:SS,1–8) and copied with the MP4."),
+		this);
+	hint->setWordWrap(true);
+	layout->addWidget(hint);
 	layout->addStretch();
 	markers->editingHotkeys = true;
+}
+
+void PoldenMarkerSettings::setValidityChanged(std::function<void(bool)> callback)
+{
+	validityChanged = std::move(callback);
+	validate();
 }
 
 PoldenMarkerSettings::~PoldenMarkerSettings()
@@ -194,20 +267,32 @@ PoldenMarkerSettings::~PoldenMarkerSettings()
 
 bool PoldenMarkerSettings::validate()
 {
-	std::vector<obs_key_combination_t> used;
-	for (auto *editor : editors) {
-		std::vector<obs_key_combination_t> combos;
-		editor->GetCombinations(combos);
-		for (const auto &combo : combos) {
-			if (std::find(used.begin(), used.end(), combo) != used.end()) {
-				errorLabel->setText(tr("Choose different shortcuts for different marker colors."));
-				return false;
+	std::array<std::vector<obs_key_combination_t>, 8> combinations;
+	std::array<bool, 8> duplicates{};
+	bool valid = true;
+	for (int i = 0; i < 8; ++i) {
+		editors[i]->GetCombinations(combinations[i]);
+	}
+	for (int i = 0; i < 8; ++i) {
+		for (int j = i + 1; j < 8; ++j) {
+			for (const auto &combo : combinations[i]) {
+				if (std::find(combinations[j].begin(), combinations[j].end(), combo) !=
+				    combinations[j].end()) {
+					duplicates[i] = duplicates[j] = true;
+					valid = false;
+				}
 			}
-			used.push_back(combo);
 		}
 	}
-	errorLabel->clear();
-	return true;
+	for (int i = 0; i < 8; ++i) {
+		editors[i]->setStyleSheet(duplicates[i] ? QStringLiteral("QLineEdit { border: 1px solid #f0555b; }")
+							: QString());
+	}
+	errorLabel->setText(valid ? QString() : tr("Choose different shortcuts for different marker colors."));
+	if (validityChanged) {
+		validityChanged(valid);
+	}
+	return valid;
 }
 
 void PoldenMarkerSettings::apply()
@@ -222,6 +307,7 @@ void PoldenMarkerSettings::apply()
 void PoldenMarkers::recordingStarted()
 {
 	recordingStopped();
+	totalMarkerCount = 0;
 	output = OBSOutputAutoRelease(obs_frontend_get_recording_output());
 	if (!output) {
 		return;
@@ -284,6 +370,7 @@ void PoldenMarkers::addMarker(int color)
 		}
 	}
 	if (error.isEmpty()) {
+		++totalMarkerCount;
 		report(tr("Marker %1 at %2").arg(colorName(color), time));
 	} else {
 		report(error);

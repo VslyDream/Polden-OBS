@@ -88,6 +88,11 @@ try {
   }
   assert.equal(jobs.length, 2, 'Expected two recording segments');
   assert(jobs.every(job => job.converted && job.copied), 'Conversion/delivery did not finish');
+  assert(jobs[0].takeId && jobs[0].takeId === jobs[1].takeId, 'Split segments must belong to one take');
+  assert(jobs.every(job => job.durationMs > 0 && job.segmentDurationMs > 0 && job.markerCount === 10),
+    'Take duration, segment durations and marker count must be preserved');
+  assert(Math.abs(jobs.reduce((sum, job) => sum + job.segmentDurationMs, 0) - jobs[0].durationMs) < 200,
+    'Segment durations must cover the whole take');
   const first = jobs[0];
   const second = jobs[1];
   for (const job of jobs) {
@@ -95,6 +100,7 @@ try {
     assert.equal(path.basename(job.localPath), `${stem}.mp4`);
     assert.equal(path.basename(job.destinationPath), `${stem}.mp4`);
     assert.equal(job.fileName, `${stem}.mp4`);
+    assert(job.deliveredFiles.includes(job.destinationPath), 'Committed delivery must be tracked for deletion');
     const original = await readFile(path.join(path.dirname(job.sourcePath), `${stem}.txt`));
     for (const video of [job.localPath, job.destinationPath]) {
       assert.deepEqual(await readFile(path.join(path.dirname(video), `${stem}.txt`)), original);

@@ -11,7 +11,7 @@
 #include <functional>
 
 class OBSHotkeyWidget;
-class QCheckBox;
+class QPushButton;
 class QLabel;
 class PoldenMarkerSettings;
 
@@ -27,6 +27,9 @@ public:
 	void recordingStarted();
 	void recordingStopped();
 	void addMarker(int color);
+	QString shortcutText(int color) const;
+	qint64 elapsedMs();
+	int markerCount() const { return totalMarkerCount; }
 
 private:
 	friend class PoldenMarkerSettings;
@@ -40,6 +43,7 @@ private:
 	int segmentStartFrame = 0;
 	std::array<bool, 8> visibleButtons{};
 	bool editingHotkeys = false;
+	int totalMarkerCount = 0;
 
 	QString configPath() const;
 	void save();
@@ -53,10 +57,12 @@ public:
 	~PoldenMarkerSettings() override;
 	bool validate();
 	void apply();
+	void setValidityChanged(std::function<void(bool)> callback);
 
 private:
 	PoldenMarkers *markers;
 	std::array<OBSHotkeyWidget *, 8> editors;
-	std::array<QCheckBox *, 8> buttons;
+	std::array<QPushButton *, 8> buttons;
+	std::function<void(bool)> validityChanged;
 	QLabel *errorLabel;
 };

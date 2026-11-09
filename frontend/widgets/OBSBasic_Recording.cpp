@@ -130,6 +130,10 @@ void OBSBasic::StartRecording()
 		return;
 	}
 
+	if (poldenPanel) {
+		poldenPanel->activateSelectedCapture();
+	}
+
 	OnEvent(OBS_FRONTEND_EVENT_RECORDING_STARTING);
 
 	SaveProject();
@@ -253,8 +257,9 @@ void OBSBasic::RecordingStop(int code, QString last_error)
 
 void OBSBasic::RecordingFileChanged(QString lastRecordingPath)
 {
-	if (poldenPanel)
+	if (poldenPanel) {
 		poldenPanel->recordingFileChanged(lastRecordingPath);
+	}
 	QString str = QTStr("Basic.StatusBar.RecordingSavedTo");
 	ShowStatusBarMessage(str.arg(lastRecordingPath));
 

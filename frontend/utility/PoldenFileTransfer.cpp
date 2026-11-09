@@ -38,7 +38,8 @@ QByteArray fileHash(const QString &path, const Cancellation &cancel)
 }
 } // namespace
 
-QString copyVerified(const QString &source, const QString &target, const QString &jobId, const Cancellation &cancel)
+QString copyVerified(const QString &source, const QString &target, const QString &jobId, const Cancellation &cancel,
+		     const Progress &progress)
 {
 	if (cancelled(cancel)) {
 		return cancellationError();
@@ -63,6 +64,9 @@ QString copyVerified(const QString &source, const QString &target, const QString
 			return cancellationError();
 		}
 		if (targetHash == sourceHash) {
+			if (progress) {
+				progress(sourceInfo.size(), sourceInfo.size());
+			}
 			return {};
 		}
 		return QStringLiteral("Target already exists with different contents: %1").arg(target);
@@ -77,6 +81,9 @@ QString copyVerified(const QString &source, const QString &target, const QString
 		output.close();
 		QFile::remove(temporary);
 	};
+	if (progress) {
+		progress(0, sourceInfo.size());
+	}
 	while (!input.atEnd()) {
 		if (cancelled(cancel)) {
 			discard();
@@ -86,6 +93,9 @@ QString copyVerified(const QString &source, const QString &target, const QString
 		if ((block.isEmpty() && input.error() != QFileDevice::NoError) || output.write(block) != block.size()) {
 			discard();
 			return QStringLiteral("Could not copy file to: %1").arg(target);
+		}
+		if (progress) {
+			progress(input.pos(), sourceInfo.size());
 		}
 	}
 	if (!output.flush()) {
@@ -110,7 +120,7 @@ QString copyVerified(const QString &source, const QString &target, const QString
 }
 
 QString copyRecordingSidecars(const QString &originalVideo, const QString &targetVideo, const QString &jobId,
-			      const Cancellation &cancel)
+			      const Cancellation &cancel, QStringList *delivered)
 {
 	const QFileInfo original(originalVideo);
 	const QFileInfo target(targetVideo);
@@ -127,14 +137,24 @@ QString copyRecordingSidecars(const QString &originalVideo, const QString &targe
 		if (!error.isEmpty()) {
 			return error;
 		}
+		if (delivered) {
+			delivered->append(destination);
+		}
 	}
 	return cancelled(cancel) ? cancellationError() : QString();
 }
 
 QString copyVideoAndMarkers(const QString &sourceVideo, const QString &targetVideo, const QString &originalVideo,
-			    const QString &jobId, const Cancellation &cancel)
+			    const QString &jobId, const Cancellation &cancel, const Progress &progress,
+			    QStringList *delivered)
 {
-	QString error = copyVerified(sourceVideo, targetVideo, jobId, cancel);
-	return error.isEmpty() ? copyRecordingSidecars(originalVideo, targetVideo, jobId, cancel) : error;
+	QString error = copyVerified(sourceVideo, targetVideo, jobId, cancel, progress);
+	if (!error.isEmpty()) {
+		return error;
+	}
+	if (delivered) {
+		delivered->append(targetVideo);
+	}
+	return copyRecordingSidecars(originalVideo, targetVideo, jobId, cancel, delivered);
 }
 } // namespace PoldenFileTransfer
