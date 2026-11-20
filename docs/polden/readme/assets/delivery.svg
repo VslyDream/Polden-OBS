@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="368" viewBox="0 0 512 368" role="img" aria-labelledby="title">
+  <title id="title">Фрагмент панели после доставки MP4. Кнопки маркеров скрыты</title>
+  <style>text{font:18px 'Segoe UI',Arial,sans-serif;fill:#f4f5f8}.title{font-weight:600}.muted{fill:#b8beca}.button{fill:#3c404b}.field{fill:#1d1f26;stroke:#444955}</style>
+  <rect width="512" height="368" rx="7" fill="#272a33"/>
+  <rect width="512" height="36" fill="#353944"/><text x="14" y="25" class="title">Polden</text>
+  <rect x="14" y="50" width="428" height="40" rx="4" class="button"/><text x="226" y="76" text-anchor="middle">Demo ▾</text>
+  <rect x="450" y="50" width="48" height="40" rx="4" class="button"/><text x="474" y="77" text-anchor="middle">⚙</text>
+  <text x="14" y="124" class="muted">After recording</text>
+  <rect x="14" y="136" width="154" height="38" rx="4" class="button"/><text x="91" y="161" text-anchor="middle">Keep file</text>
+  <rect x="176" y="136" width="154" height="38" rx="4" class="button"/><text x="253" y="161" text-anchor="middle">Convert MP4</text>
+  <rect x="338" y="136" width="160" height="38" rx="4" fill="#3a57c9"/><text x="418" y="161" text-anchor="middle">MP4 → Lucid</text>
+  <rect x="14" y="191" width="484" height="162" rx="6" class="field"/>
+  <text x="29" y="224" class="title">✓ Copied to LucidLink</text>
+  <rect x="442" y="201" width="40" height="32" rx="4" class="button"/><g stroke="#e7e9ee" fill="none" stroke-width="2"><path d="M455 212h14m-11-4h8m-10 6 1 12h10l1-12m-7 1v8m4-8v8"/></g>
+  <text x="29" y="259">Demo_2026-11-20_14-30-00.mp4</text>
+  <text x="29" y="286" class="muted">0:01:24 · 0 markers</text>
+  <rect x="29" y="303" width="453" height="36" rx="4" class="button"/><text x="256" y="327" text-anchor="middle">Open folder</text>
+</svg>
