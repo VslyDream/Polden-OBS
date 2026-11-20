@@ -54,4 +54,6 @@ Polden OBS автоматически готовит MP4 после записи
 
 ---
 
-[История версий](docs/polden/releases.md) · [Техническая документация](POLDEN.md) · [Лицензия](COPYING) · [Сообщить об ошибке](https://t.me/Vsly_Dream)
+[История версий](docs/polden/releases.md) · [Техническая документация](docs/polden/README.md) · [Лицензия](COPYING) · [Сообщить об ошибке](https://t.me/Vsly_Dream)
+
+Об уязвимостях и проблемах с персональными данными сообщайте автору [личным сообщением в Telegram](https://t.me/Vsly_Dream).
